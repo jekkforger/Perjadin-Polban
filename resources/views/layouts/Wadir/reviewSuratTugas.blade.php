@@ -96,9 +96,10 @@
       @endforelse
         </div>
 
-      <p style="margin-top: 20px; margin-bottom: 10px; text-align: justify;">
-    Untuk mengikuti kegiatan <span class="fw-bold">{{ $suratTugas->perihal_tugas }}</span>, diselenggarakan oleh <span class="fw-bold">{{ $suratTugas->nama_penyelenggara }}</span> pada:
-</p>
+        <p style="margin-top: 20px; margin-bottom: 10px; text-align: justify;">
+          Untuk mengikuti kegiatan <span class="fw-bold">{{ $suratTugas->perihal_tugas }}</span>, diselenggarakan oleh
+          <span class="fw-bold">{{ $suratTugas->nama_penyelenggara }}</span> pada:
+        </p>
 
         <!-- Detail Kegiatan -->
         <table class="table table-borderless table-sm" style="width: 100%; font-size: 11pt; line-height: 1.6;">
@@ -178,8 +179,13 @@
   {{-- Form Aksi Wadir --}}
   <div class="card-footer bg-light p-4">
     <h4>Catatan / Komentar (Jika Perlu Revisi/Ditolak)</h4>
-    <form action="{{ route('wadir.process.review.surat_tugas', $suratTugas->surat_tugas_id) }}" method="POST">
+    <form action="{{ route('wadir.process.review.surat_tugas', $suratTugas->surat_tugas_id) }}" method="POST"
+      id="wadirReviewForm">
       @csrf
+      {{-- Input tersembunyi untuk sumber dana yang diperbarui --}}
+      <input type="hidden" name="updated_sumber_dana" id="updated_sumber_dana_input"
+        value="{{ $suratTugas->sumber_dana }}">
+
       <div class="mb-3">
         <textarea name="catatan_revisi" class="form-control @error('catatan_revisi') is-invalid @enderror" rows="3"
           placeholder="Masukkan catatan atau alasan penolakan/revisi...">{{ old('catatan_revisi', $suratTugas->catatan_revisi) }}</textarea>
@@ -195,7 +201,7 @@
         <button type="submit" name="action" value="reject" class="btn btn-danger">
           <i class="fas fa-times-circle"></i> Tolak
         </button>
-        <button type="button" class="btn btn-success" id="btnSetujui"> {{-- Ubah type ke button --}}
+        <button type="button" class="btn btn-success" id="btnSetujui">
           <i class="fas fa-check-circle"></i> Setujui
         </button>
       </div>
@@ -206,11 +212,10 @@
     </div>
   </div>
 </div>
-</div>
 
-{{-- MODAL KONFIRMASI SUMBER DANA --}}
-<div class="modal fade" id="modalKonfirmasiSumberDana" tabindex="-1" aria-labelledby="modalKonfirmasiSumberDanaLabel"
-  aria-hidden="true">
+
+{{-- MODAL 1: KONFIRMASI SUMBER DANA --}}
+<div class="modal fade" id="modalKonfirmasiSumberDana" tabindex="-1" aria-labelledby="modalKonfirmasiSumberDanaLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
@@ -219,20 +224,19 @@
       </div>
       <div class="modal-body">
         <p>Apakah sumber dana sudah sesuai?</p>
-        <p class="text-muted small">Sumber Dana saat ini: <strong>{{ $suratTugas->sumber_dana }}</strong></p>
+        <p class="text-muted small">Sumber Dana saat ini: <strong id="currentSumberDanaText">{{ $suratTugas->sumber_dana }}</strong></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
         <button type="button" class="btn btn-primary" id="btnEditSumberDana">Edit Sumber Dana</button>
-        <button type="button" class="btn btn-success" id="btnKonfirmasiSetuju">Ya</button>
+        <button type="button" class="btn btn-success" id="btnLanjutKonfirmasiAkhir">Ya</button>
       </div>
     </div>
   </div>
 </div>
 
-{{-- MODAL EDIT SUMBER DANA --}}
-<div class="modal fade" id="modalEditSumberDana" tabindex="-1" aria-labelledby="modalEditSumberDanaLabel"
-  aria-hidden="true">
+{{-- MODAL 2: EDIT SUMBER DANA --}}
+<div class="modal fade" id="modalEditSumberDana" tabindex="-1" aria-labelledby="modalEditSumberDanaLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
@@ -241,184 +245,37 @@
       </div>
       <div class="modal-body">
         <div class="form-check">
-          <input class="form-check-input" type="radio" name="sumber_dana_baru" id="radioRM" value="RM" {{ $suratTugas->sumber_dana == 'RM' ? 'checked' : '' }}>
-          <label class="form-check-label" for="radioRM">
-            RM
-          </label>
+          <input class="form-check-input" type="radio" name="sumber_dana_baru" id="radioRM" value="RM">
+          <label class="form-check-label" for="radioRM">RM</label>
         </div>
         <div class="form-check">
-          <input class="form-check-input" type="radio" name="sumber_dana_baru" id="radioPNBP" value="PNBP" {{ $suratTugas->sumber_dana == 'PNBP' ? 'checked' : '' }}>
-          <label class="form-check-label" for="radioPNBP">
-            PNBP
-          </label>
+          <input class="form-check-input" type="radio" name="sumber_dana_baru" id="radioPNBP" value="PNBP">
+          <label class="form-check-label" for="radioPNBP">PNBP</label>
         </div>
-        {{-- Anda bisa tambahkan opsi lain jika ada, contoh: 'Polban', 'Penyelenggara', 'Polban dan Penyelenggara' --}}
-        {{-- PENTING: Anda perlu logika untuk memetakan opsi lama ke RM/PNBP jika diperlukan --}}
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batalkan</button>
-        <button type="button" class="btn btn-success" id="btnSimpanSumberDana">Paraf</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-{{-- MODAL SIGNATURE PAD --}}
-<div class="modal fade" id="modalSignaturePad" tabindex="-1" aria-labelledby="modalSignaturePadLabel"
-  aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalSignaturePadLabel">Tanda Tangan Digital</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="text-center mb-3">
-          <p>Silakan buat tanda tangan digital Anda di area di bawah ini:</p>
-        </div>
-        <div class="signature-container" style="border: 2px solid #ccc; border-radius: 5px; background-color: #fff;">
-          <canvas id="signature-pad" width="600" height="300" style="display: block; margin: 0 auto;"></canvas>
-        </div>
-        <div class="text-center mt-3">
-          <button type="button" class="btn btn-outline-danger" id="clearSignature">
-            <i class="fas fa-eraser"></i> Hapus
-          </button>
-        </div>
+        {{-- Anda bisa menambahkan opsi lain jika diperlukan --}}
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-        <button type="button" class="btn btn-success" id="saveSignature">
-          <i class="fas fa-check"></i> Lanjut ke Posisi
-        </button>
+        <button type="button" class="btn btn-success" id="btnSimpanDanKonfirmasi">Simpan & Setujui</button>
       </div>
     </div>
   </div>
 </div>
 
-{{-- MODAL SIGNATURE POSITION --}}
-<div class="modal fade" id="modalSignaturePosition" tabindex="-1" aria-labelledby="modalSignaturePositionLabel"
-  aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered">
+{{-- MODAL 3: KONFIRMASI AKHIR --}}
+<div class="modal fade" id="modalKonfirmasiAkhir" tabindex="-1" aria-labelledby="modalKonfirmasiAkhirLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modalSignaturePositionLabel">Atur Posisi Tanda Tangan</h5>
+        <h5 class="modal-title" id="modalKonfirmasiAkhirLabel">Konfirmasi Akhir</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <div class="row">
-          <div class="col-md-8">
-            <p class="text-muted">Seret tanda tangan ke posisi yang diinginkan pada dokumen:</p>
-            <div id="documentPreview" style="
-              border: 2px solid #ddd; 
-              border-radius: 5px; 
-              background: white; 
-              position: relative; 
-              min-height: 400px; 
-              overflow: hidden;
-              font-family: 'Times New Roman', serif;
-              font-size: 11pt;
-              padding: 20px;
-            ">
-              <!-- Mini preview dokumen -->
-              <div style="text-align: center; margin-bottom: 15px;">
-                <strong>SURAT TUGAS</strong><br>
-                <small>Nomor:
-                  {{ $suratTugas->nomor_surat_usulan_jurusan }}/PL12.C01/KP/{{ $suratTugas->created_at->format('Y') }}</small>
-              </div>
-
-              <div style="margin-bottom: 20px;">
-                <strong>Direktur memberi tugas kepada:</strong><br>
-                @forelse ($suratTugas->detailPelaksanaTugas->take(2) as $detail)
-          {{ $detail->personable->nama ?? '-' }}<br>
-        @empty
-          -
-        @endforelse
-                @if($suratTugas->detailPelaksanaTugas->count() > 2)
-          <small>... dan {{ $suratTugas->detailPelaksanaTugas->count() - 2 }} lainnya</small>
-        @endif
-              </div>
-
-              <div style="margin-bottom: 20px;">
-                <strong>Kegiatan:</strong> {{ $suratTugas->perihal_tugas }}<br>
-                <strong>Tanggal:</strong> {{ $suratTugas->tanggal_berangkat->translatedFormat('j F Y') }} →
-                {{ $suratTugas->tanggal_kembali->translatedFormat('j F Y') }}<br>
-                <strong>Tempat:</strong> {{ $suratTugas->tempat_kegiatan }}
-              </div>
-
-              <!-- Area tanda tangan -->
-              <div style="
-                position: absolute; 
-                bottom: 40px; 
-                right: 40px; 
-                text-align: left;
-                min-width: 200px;
-              ">
-                <div style="margin-bottom: 5px;">{{ Carbon\Carbon::now()->translatedFormat('j F Y') }}</div>
-                <div style="margin-bottom: 5px;">Direktur,</div>
-                <div style="margin-top: 60px;">
-                  <div>Maryani, S.E., M.Si., Ph.D.</div>
-                  <div>NIP 196405041990032001</div>
-                </div>
-              </div>
-
-              <!-- Draggable signature -->
-              <div id="draggableSignature" style="
-                position: absolute;
-                top: 300px;
-                right: 120px;
-                width: 80px;
-                height: 60px;
-                border: 2px dashed #007bff;
-                cursor: move;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: rgba(0, 123, 255, 0.1);
-                border-radius: 4px;
-                z-index: 10;
-              ">
-                <img id="signaturePreview" style="max-width: 100%; max-height: 100%; object-fit: contain;"
-                  alt="Signature Preview">
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <h6>Kontrol Posisi</h6>
-            <div class="mb-3">
-              <label for="positionX" class="form-label">Posisi X (px)</label>
-              <input type="range" class="form-range" id="positionX" min="-200" max="200" value="0">
-              <small class="form-text text-muted" id="positionXValue">0px</small>
-            </div>
-            <div class="mb-3">
-              <label for="positionY" class="form-label">Posisi Y (px)</label>
-              <input type="range" class="form-range" id="positionY" min="-100" max="100" value="-15">
-              <small class="form-text text-muted" id="positionYValue">-15px</small>
-            </div>
-            <div class="mb-3">
-              <label for="signatureWidth" class="form-label">Lebar (px)</label>
-              <input type="range" class="form-range" id="signatureWidth" min="40" max="150" value="80">
-              <small class="form-text text-muted" id="signatureWidthValue">80px</small>
-            </div>
-            <div class="mb-3">
-              <label for="signatureHeight" class="form-label">Tinggi (px)</label>
-              <input type="range" class="form-range" id="signatureHeight" min="30" max="120" value="60">
-              <small class="form-text text-muted" id="signatureHeightValue">60px</small>
-            </div>
-            <div class="mb-3">
-              <button type="button" class="btn btn-outline-primary btn-sm" id="resetPosition">
-                <i class="fas fa-undo"></i> Reset Posisi
-              </button>
-            </div>
-          </div>
-        </div>
+        <p>Anda akan menyetujui surat tugas ini. Apakah Anda yakin ingin melanjutkan?</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" id="backToSignature">
-          <i class="fas fa-arrow-left"></i> Kembali ke Tanda Tangan
-        </button>
-        <button type="button" class="btn btn-success" id="finalSaveSignature">
-          <i class="fas fa-check"></i> Simpan & Setujui
-        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-success" id="btnSubmitPersetujuan">Ya, Setujui</button>
       </div>
     </div>
   </div>
@@ -428,7 +285,85 @@
   <link rel="stylesheet" href="{{ asset('css/paraf_digital.css') }}">
 @endpush
 
+@endsection
+
 @push('scripts')
-  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-  <script src="{{ asset('js/paraf_digital.js') }}"></script>
+{{-- Skrip untuk mengontrol alur modal baru --}}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Inisialisasi semua modal
+    const modalKonfirmasiSumberDana = new bootstrap.Modal(document.getElementById('modalKonfirmasiSumberDana'));
+    const modalEditSumberDana = new bootstrap.Modal(document.getElementById('modalEditSumberDana'));
+    const modalKonfirmasiAkhir = new bootstrap.Modal(document.getElementById('modalKonfirmasiAkhir'));
+
+    // Elemen-elemen yang akan dimanipulasi
+    const form = document.getElementById('wadirReviewForm');
+    const updatedSumberDanaInput = document.getElementById('updated_sumber_dana_input');
+    const currentSumberDanaText = document.getElementById('currentSumberDanaText');
+
+    // Tombol-tombol pemicu
+    const btnSetujui = document.getElementById('btnSetujui');
+    const btnEditSumberDana = document.getElementById('btnEditSumberDana');
+    const btnLanjutKonfirmasiAkhir = document.getElementById('btnLanjutKonfirmasiAkhir');
+    const btnSimpanDanKonfirmasi = document.getElementById('btnSimpanDanKonfirmasi');
+    const btnSubmitPersetujuan = document.getElementById('btnSubmitPersetujuan');
+
+    // 1. Saat tombol "Setujui" utama diklik
+    btnSetujui.addEventListener('click', function () {
+        // Tampilkan modal pertama untuk konfirmasi sumber dana
+        modalKonfirmasiSumberDana.show();
+    });
+
+    // 2. Saat tombol "Edit Sumber Dana" di modal pertama diklik
+    btnEditSumberDana.addEventListener('click', function () {
+        // Sembunyikan modal pertama dan tampilkan modal edit
+        modalKonfirmasiSumberDana.hide();
+        
+        // Set radio button di modal edit sesuai dengan nilai saat ini dari input tersembunyi
+        const currentSumberDana = updatedSumberDanaInput.value;
+        const radioToCheck = document.querySelector(`input[name="sumber_dana_baru"][value="${currentSumberDana}"]`);
+        if(radioToCheck) {
+            radioToCheck.checked = true;
+        }
+
+        modalEditSumberDana.show();
+    });
+
+    // 3. Saat tombol "Ya" (Lanjut) di modal pertama diklik
+    btnLanjutKonfirmasiAkhir.addEventListener('click', function() {
+        modalKonfirmasiSumberDana.hide();
+        modalKonfirmasiAkhir.show();
+    });
+
+    // 4. Saat tombol "Simpan & Setujui" di modal edit diklik
+    btnSimpanDanKonfirmasi.addEventListener('click', function () {
+        // Ambil nilai baru dari radio button
+        const newSumberDana = document.querySelector('input[name="sumber_dana_baru"]:checked').value;
+        
+        // Perbarui nilai di input tersembunyi DAN teks di modal pertama
+        updatedSumberDanaInput.value = newSumberDana;
+        currentSumberDanaText.textContent = newSumberDana;
+
+        // Sembunyikan modal edit dan tampilkan modal konfirmasi akhir
+        modalEditSumberDana.hide();
+        modalKonfirmasiAkhir.show();
+    });
+
+    // 5. Saat tombol "Ya, Setujui" di modal konfirmasi akhir diklik
+    btnSubmitPersetujuan.addEventListener('click', function () {
+        // Tambahkan input action 'approve' ke form dan submit
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'approve';
+        form.appendChild(actionInput);
+
+        // Nonaktifkan tombol untuk mencegah double-submit
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Menyetujui...';
+
+        form.submit();
+    });
+});
+</script>
 @endpush

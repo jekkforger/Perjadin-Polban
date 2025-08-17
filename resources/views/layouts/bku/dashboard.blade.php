@@ -8,33 +8,48 @@
 
     {{-- Ringkasan --}}
     <div class="row g-3 mb-4">
+        {{-- Total Penugasan -> mengarah ke History --}}
         <div class="col-6 col-md-3">
-            <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
-                <p class="fw-semibold mb-1">Total Pengusulan</p>
-                <h5 class="fw-bold mb-2">{{ $totalPenugasan ?? 0 }}</h5>
-                <i class="bi bi-file-earmark"></i>
-            </div>
+            <a href="{{ route('history.index') }}" class="text-decoration-none">
+                <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
+                    <p class="fw-semibold mb-1">Total Pengusulan</p>
+                    <h5 class="fw-bold mb-2">{{ $totalPenugasan ?? 0 }}</h5>
+                    <i class="bi bi-file-earmark text-primary"></i>
+                </div>
+            </a>
         </div>
+
+        {{-- Surat Tugas Baru (sudah terbit) -> mengarah ke Laporan & Bukti --}}
         <div class="col-6 col-md-3">
-            <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
-                <p class="fw-semibold mb-1">Surat Tugas Baru</p>
-                <h5 class="fw-bold mb-2">{{ $penugasanBaru ?? 0 }}</h5>
-                <i class="bi bi-file-earmark-plus"></i>
-            </div>
+            <a href="{{ route('bku.laporan') }}" class="text-decoration-none">
+                <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
+                    <p class="fw-semibold mb-1">Surat Tugas Baru</p>
+                    <h5 class="fw-bold mb-2">{{ $penugasanBaru ?? 0 }}</h5>
+                    <i class="bi bi-file-earmark-plus text-success"></i>
+                </div>
+            </a>
         </div>
+        
+        {{-- Bertugas -> mengarah ke History --}}
         <div class="col-6 col-md-3">
-            <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
-                <p class="fw-semibold mb-1">Bertugas</p>
-                <h5 class="fw-bold mb-2">{{ $sedangBertugas ?? 0 }}</h5>
-                <i class="bi bi-briefcase"></i>
-            </div>
+            <a href="{{ route('history.index') }}" class="text-decoration-none">
+                <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
+                    <p class="fw-semibold mb-1">Bertugas</p>
+                    <h5 class="fw-bold mb-2">{{ $sedangBertugas ?? 0 }}</h5>
+                    <i class="bi bi-briefcase text-info"></i>
+                </div>
+            </a>
         </div>
+
+        {{-- Laporan Belum Selesai -> mengarah ke Laporan & Bukti --}}
         <div class="col-6 col-md-3">
-            <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
-                <p class="fw-semibold mb-1">Laporan Belum Selesai</p>
-                <h5 class="fw-bold mb-2">{{ $laporanBelumSelesai ?? 0 }}</h5>
-                <i class="bi bi-exclamation-triangle"></i>
-            </div>
+            <a href="{{ route('bku.laporan') }}" class="text-decoration-none">
+                <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
+                    <p class="fw-semibold mb-1">Laporan Belum Selesai</p>
+                    <h5 class="fw-bold mb-2">{{ $laporanBelumSelesai ?? 0 }}</h5>
+                    <i class="bi bi-exclamation-triangle text-danger"></i>
+                </div>
+            </a>
         </div>
     </div>
 

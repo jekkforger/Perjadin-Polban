@@ -15,7 +15,7 @@ class PegawaiSeeder extends Seeder
         $faker = Faker::create('id_ID');
         
         // --- Buat Pegawai Kunci ---
-        DB::connection('mysql_simpeg')->table('pegawai')->insertOrIgnore([
+        DB::table('pegawai')->insertOrIgnore([
             ['nama' => 'Ahmad Fauzy', 'nip' => '199001012020121005', 'pangkat' => 'Penata Muda', 'golongan' => 'III/a', 'jabatan' => 'Staf Umum'],
             ['nama' => 'Pengusul Utama', 'nip' => '199001012020121001', 'pangkat' => 'Penata', 'golongan' => 'III/c', 'jabatan' => 'Ketua Jurusan'],
             ['nama' => 'Faras Rama Mahadika', 'nip' => '198501012015121001', 'pangkat' => 'Pembina', 'golongan' => 'IV/a', 'jabatan' => 'Wakil Direktur I'],
@@ -26,7 +26,7 @@ class PegawaiSeeder extends Seeder
         // --- Buat Pegawai Acak ---
         for ($i = 1; $i <= 499; $i++) {
             // Kita gunakan DB facade di sini agar konsisten
-            DB::connection('mysql_simpeg')->table('pegawai')->insert([
+            DB::table('pegawai')->insert([ 
                 'nama' => $faker->unique()->name,
                 'nip' => $faker->unique()->numerify('199###############'),
                 'pangkat' => 'Penata Muda Tingkat I',

@@ -31,3 +31,26 @@ body.sidebar-collapsed .bku-container {
         padding-right: 1rem;
     }
 }
+
+
+/* Targetkan link di dalam header tabel */
+.table thead a {
+    color: inherit; /* Mewarisi warna teks dari parent (defaultnya hitam) */
+    text-decoration: none; /* Menghilangkan garis bawah */
+}
+
+/* (Opsional) Efek saat di-hover agar tetap terlihat interaktif */
+.table thead a:hover {
+    color: #007bff; /* Ganti menjadi biru atau warna primary saat di-hover */
+    text-decoration: none;
+}
+
+/* Styling untuk ikon sort agar ada sedikit jarak */
+.table thead a .fas {
+    margin-left: 5px; /* Memberi sedikit spasi antara teks dan ikon */
+    color: #6c757d; /* Warna ikon sedikit lebih redup */
+}
+
+.table thead a:hover .fas {
+    color: #007bff; /* Ikon juga ikut berubah warna saat di-hover */
+}

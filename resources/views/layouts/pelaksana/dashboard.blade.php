@@ -7,26 +7,37 @@
     <h1 class="dashboard-page-title mb-4">Dashboard</h1>
 
     <div class="row g-3 mb-4">
+        {{-- Total Penugasan -> mengarah ke History --}}
         <div class="col-6 col-md-3">
-            <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
-                <p class="fw-semibold mb-1">Total Penugasan</p>
-                <h5 class="fw-bold mb-2">{{ $totalPenugasan ?? 0 }}</h5>
-                <i class="bi bi-file-earmark fs-4 text-primary"></i>
-            </div>
+            <a href="{{ route('history.index') }}" class="text-decoration-none">
+                <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
+                    <p class="fw-semibold mb-1">Total Penugasan</p>
+                    <h5 class="fw-bold mb-2">{{ $totalPenugasan ?? 0 }}</h5>
+                    <i class="bi bi-file-earmark fs-4 text-primary"></i>
+                </div>
+            </a>
         </div>
+
+        {{-- Penugasan Baru -> mengarah ke Dashboard Pelaksana (halaman ini sendiri) --}}
         <div class="col-6 col-md-3">
-            <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
-                <p class="fw-semibold mb-1">Penugasan Baru</p>
-                <h5 class="fw-bold mb-2">{{ $penugasanBaru ?? 0 }}</h5>
-                <i class="bi bi-file-earmark-plus fs-4 text-success"></i>
-            </div>
+            <a href="{{ route('pelaksana.dashboard') }}" class="text-decoration-none">
+                <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
+                    <p class="fw-semibold mb-1">Penugasan Baru</p>
+                    <h5 class="fw-bold mb-2">{{ $penugasanBaru ?? 0 }}</h5>
+                    <i class="bi bi-file-earmark-plus fs-4 text-success"></i>
+                </div>
+            </a>
         </div>
+
+        {{-- Laporan Belum Selesai -> mengarah ke halaman Laporan & Bukti --}}
         <div class="col-6 col-md-3">
-            <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
-                <p class="fw-semibold mb-1">Laporan Belum Selesai</p>
-                <h5 class="fw-bold mb-2">{{ $laporanBelumSelesai ?? 0 }}</h5>
-                <i class="bi bi-exclamation-triangle fs-4 text-danger"></i>
-            </div>
+            <a href="{{ route('pelaksana.bukti') }}" class="text-decoration-none">
+                <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
+                    <p class="fw-semibold mb-1">Laporan Belum Selesai</p>
+                    <h5 class="fw-bold mb-2">{{ $laporanBelumSelesai ?? 0 }}</h5>
+                    <i class="bi bi-exclamation-triangle fs-4 text-danger"></i>
+                </div>
+            </a>
         </div>
     </div>
 
@@ -111,13 +122,16 @@
                             @endif
                         </td>
                         <td>
-                            @if($tugas->status_surat == 'diterbitkan')
-                            <!-- isi disini -->
-                                <a href="{{ route('pelaksana.download_pdf', $tugas->surat_tugas_id) }}" class="btn btn-sm btn-success">
-                                    <i class="fas fa-print"></i> Print Surat
+                            {{-- Tombol Detail/View akan selalu muncul dan mengarah ke halaman detail --}}
+                            <a href="{{ route('history.show', $tugas->surat_tugas_id) }}" class="btn btn-sm btn-info" title="Lihat Detail">
+                                <i class="fas fa-eye"></i> Detail
+                            </a>
+
+                            {{-- Tombol Download PDF akan muncul jika surat sudah diterbitkan --}}
+                            @if ($tugas->status_surat == 'diterbitkan')
+                                <a href="{{ route('history.download_pdf', $tugas->surat_tugas_id) }}" class="btn btn-sm btn-success" title="Unduh PDF">
+                                    <i class="fas fa-download"></i> PDF
                                 </a>
-                            @else
-                                <a href="#" class="btn btn-sm btn-info">Detail</a>
                             @endif
                         </td>
                     </tr>

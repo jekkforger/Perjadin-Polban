@@ -356,3 +356,29 @@ body {
 .nomor {
   font-size: 16px;
 }
+
+
+/* Menargetkan semua tag <a> yang membungkus kartu dashboard */
+a.text-decoration-none .dashboard-card,
+a.text-decoration-none .dashboard-card-new {
+    color: #212529; /* Warna teks default (hitam) */
+}
+
+/* Mengatur warna elemen teks spesifik di dalam kartu agar menjadi hitam/abu-abu */
+a.text-decoration-none .dashboard-card p,
+a.text-decoration-none .dashboard-card-new .card-title {
+    color: #6c757d; /* Warna abu-abu untuk judul */
+}
+
+a.text-decoration-none .dashboard-card h5,
+a.text-decoration-none .dashboard-card-new .card-value {
+    color: #212529; /* Warna hitam pekat untuk angka */
+}
+
+/* BAGIAN UNTUK IKON DIHAPUS DARI SINI */
+
+/* Efek saat hover agar tetap terlihat interaktif */
+a.text-decoration-none:hover .dashboard-card,
+a.text-decoration-none:hover .dashboard-card-new {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}

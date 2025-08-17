@@ -7,22 +7,28 @@
 
     {{-- Kotak Info Dashboard --}}
     <div class="row g-3 mb-4">
+        {{-- Total Usulan -> mengarah ke History --}}
         <div class="col-6 col-md-3">
-            <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
-                <p class="fw-semibold mb-1">Total Usulan</p>
-                <h5 class="fw-bold mb-2">{{ $dashboardStats['total_pengusulan'] }}</h5>
-                <i class="bi bi-file-earmark-text fs-4 text-primary"></i>
-            </div>
+            <a href="{{ route('history.index') }}" class="text-decoration-none">
+                <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
+                    <p class="fw-semibold mb-1">Total Usulan</p>
+                    <h5 class="fw-bold mb-2">{{ $dashboardStats['total_pengusulan'] }}</h5>
+                    <i class="bi bi-file-earmark-text fs-4 text-primary"></i>
+                </div>
+            </a>
         </div>
+        
+        {{-- Bertugas -> mengarah ke History --}}
         <div class="col-6 col-md-3">
-            <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
-                <p class="fw-semibold mb-1">Bertugas</p>
-                <h5 class="fw-bold mb-2">{{ $dashboardStats['bertugas'] }}</h5>
-                <i class="bi bi-people fs-4 text-info"></i>
-            </div>
+            <a href="{{ route('history.index') }}" class="text-decoration-none">
+                <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
+                    <p class="fw-semibold mb-1">Bertugas</p>
+                    <h5 class="fw-bold mb-2">{{ $dashboardStats['bertugas'] }}</h5>
+                    <i class="bi bi-people fs-4 text-info"></i>
+                </div>
+            </a>
         </div>
     </div>
-
     {{-- Tabel Detail Pengusulan --}}
     <div class="p-4 shadow-sm bg-white rounded text-left">
         <div class="card-header py-3 d-flex justify-content-between align-items-center table-header-flex">

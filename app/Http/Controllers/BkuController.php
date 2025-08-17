@@ -66,15 +66,33 @@ class BkuController extends Controller
 
     public function laporan(Request $request)
     {
+        
+        // 1. Ambil parameter sort dan direction dari URL, berikan nilai default
+        $sort = $request->input('sort', 'tanggal_berangkat'); // Default: kolom pelaksanaan
+        $direction = $request->input('direction', 'desc');   // Default: terbaru (descending)
+
+        // 2. Daftar kolom yang diizinkan untuk di-sort (untuk keamanan)
+        $sortableColumns = ['perihal_tugas', 'created_at', 'tanggal_berangkat', 'nomor_surat_tugas_resmi'];
+        if (!in_array($sort, $sortableColumns)) {
+            $sort = 'tanggal_berangkat'; // Kembali ke default jika input tidak valid
+        }
+
+        // Query dasar tetap sama
         $query = SuratTugas::whereHas('laporanPerjalananDinas.dokumenLampiran');
 
         if ($request->filled('search')) {
             $query->where('perihal_tugas', 'like', '%' . $request->search . '%');
         }
 
-        $daftarTugas = $query->latest()->paginate(10)->appends($request->query());
+        // 3. Terapkan pengurutan ke query
+        // Hapus ->latest() dan ganti dengan orderBy dinamis
+        $query->orderBy($sort, $direction);
 
-        return view('layouts.bku.laporan', compact('daftarTugas'));
+        // Paginate hasilnya
+        $daftarTugas = $query->paginate(10)->appends($request->query());
+
+        // 4. Kirim variabel sort dan direction ke view
+        return view('layouts.bku.laporan', compact('daftarTugas', 'sort', 'direction'));
     }
 
     public function lihatLaporan($surat_tugas_id)

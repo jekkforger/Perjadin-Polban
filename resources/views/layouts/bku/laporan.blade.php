@@ -45,10 +45,34 @@
                 <thead class="table-light">
                     <tr>
                         <th>No</th>
-                        <th>Nama Kegiatan</th>
-                        <th>Pengusulan</th>
-                        <th>Pelaksanaan</th>
-                        <th>Nomor Surat Tugas</th>
+                        <th>
+                            {{-- Link untuk sort Nama Kegiatan --}}
+                            <a href="{{ route('bku.laporan', ['sort' => 'perihal_tugas', 'direction' => ($sort == 'perihal_tugas' && $direction == 'asc') ? 'desc' : 'asc', 'search' => request('search')]) }}">
+                                Nama Kegiatan
+                                @if($sort == 'perihal_tugas') <i class="fas fa-sort-{{ $direction == 'asc' ? 'up' : 'down' }}"></i> @endif
+                            </a>
+                        </th>
+                        <th>
+                            {{-- Link untuk sort Tanggal Pengusulan --}}
+                            <a href="{{ route('bku.laporan', ['sort' => 'created_at', 'direction' => ($sort == 'created_at' && $direction == 'asc') ? 'desc' : 'asc', 'search' => request('search')]) }}">
+                                Pengusulan
+                                @if($sort == 'created_at') <i class="fas fa-sort-{{ $direction == 'asc' ? 'up' : 'down' }}"></i> @endif
+                            </a>
+                        </th>
+                        <th>
+                            {{-- Link untuk sort Tanggal Pelaksanaan --}}
+                            <a href="{{ route('bku.laporan', ['sort' => 'tanggal_berangkat', 'direction' => ($sort == 'tanggal_berangkat' && $direction == 'asc') ? 'desc' : 'asc', 'search' => request('search')]) }}">
+                                Pelaksanaan
+                                @if($sort == 'tanggal_berangkat') <i class="fas fa-sort-{{ $direction == 'asc' ? 'up' : 'down' }}"></i> @endif
+                            </a>
+                        </th>
+                        <th>
+                            {{-- Link untuk sort Nomor Surat --}}
+                            <a href="{{ route('bku.laporan', ['sort' => 'nomor_surat_tugas_resmi', 'direction' => ($sort == 'nomor_surat_tugas_resmi' && $direction == 'asc') ? 'desc' : 'asc', 'search' => request('search')]) }}">
+                                Nomor Surat Tugas
+                                @if($sort == 'nomor_surat_tugas_resmi') <i class="fas fa-sort-{{ $direction == 'asc' ? 'up' : 'down' }}"></i> @endif
+                            </a>
+                        </th>
                         <th>Status Laporan</th>
                         <th>Aksi</th>
                     </tr>

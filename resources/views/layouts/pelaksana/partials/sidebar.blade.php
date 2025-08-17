@@ -32,6 +32,12 @@
                 </span>
                 <span class="description">Status Laporan</span>
             </a>
+            <a href="{{ route('history.index') }}" class="nav-link {{ Request::routeIs('history.index') ? 'active' : '' }}">
+                <span class="icon">
+                    <i class="bi bi-clock-history"></i>
+                </span>
+                <span class="description">History</span>
+            </a>
 
             @php
                 $rolesWithSwitch = ['wadir_1', 'wadir_2', 'wadir_3', 'wadir_4', 'direktur'];

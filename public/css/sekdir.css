@@ -66,3 +66,35 @@ body.sidebar-collapsed .dashboard-container {
         padding-right: 1rem;
     }
 }
+
+.dashboard-card-new {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+}
+.dashboard-card-new:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+.dashboard-card-new .card-content { text-align: left; }
+.dashboard-card-new .card-title { font-size: 1rem; color: #6c757d; margin-bottom: 0.5rem; font-weight: 500; }
+.dashboard-card-new .card-value { font-size: 2.25rem; font-weight: 700; color: #212529; margin: 0; line-height: 1; }
+.dashboard-card-new .card-icon { font-size: 2.5rem; }
+
+/* CSS untuk Link agar tidak biru */
+a.text-decoration-none .dashboard-card-new .card-title,
+a.text-decoration-none .dashboard-card-new .card-value {
+    color: inherit;
+}
+a.text-decoration-none .dashboard-card-new .card-title {
+    color: #6c757d;
+}
+a.text-decoration-none .dashboard-card-new .card-value {
+    color: #212529;
+}

@@ -6,48 +6,60 @@
 <div class="dashboard-container px-4 py-3">
     <h1 class="dashboard-page-title mb-4">Dashboard</h1>
 
-    {{-- Kotak Statistik --}}
     <div class="row g-3 mb-4">
-        {{-- Total Pengusulan --}}
+        {{-- Total Pengusulan -> mengarah ke History --}}
         <div class="col-6 col-md-3">
-            <div class="dashboard-card">
-                <p class="dashboard-title">Total Pengusulan</p>
-                <h5 class="dashboard-count">{{ $dashboardStats['total_pengusulan'] }}</h5>
-                <i class="bi bi-file-earmark-text dashboard-icon text-primary"></i>
-            </div>
+            <a href="{{ route('history.index') }}" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <p class="dashboard-title">Total Pengusulan</p>
+                    <h5 class="dashboard-count">{{ $dashboardStats['total_pengusulan'] }}</h5>
+                    <i class="bi bi-file-earmark-text dashboard-icon text-primary"></i>
+                </div>
+            </a>
         </div>
-        {{-- Usulan Baru --}}
+        
+        {{-- Usulan Baru -> mengarah ke halaman Persetujuan --}}
         <div class="col-6 col-md-3">
-            <div class="dashboard-card">
-                <p class="dashboard-title">Usulan Baru</p>
-                <h5 class="dashboard-count">{{ $dashboardStats['usulan_baru'] }}</h5>
-                <i class="bi bi-plus dashboard-icon text-success"></i>
-            </div>
+            <a href="{{ route('wadir.persetujuan') }}" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <p class="dashboard-title">Usulan Baru</p>
+                    <h5 class="dashboard-count">{{ $dashboardStats['usulan_baru'] }}</h5>
+                    <i class="bi bi-plus dashboard-icon text-success"></i>
+                </div>
+            </a>
         </div>
-        {{-- Dalam Proses (Direktur) --}}
+        
+        {{-- Dalam Proses (Direktur) -> mengarah ke Persetujuan dengan filter "Diparaf" --}}
         <div class="col-6 col-md-3">
-            <div class="dashboard-card">
-                <p class="dashboard-title">Dalam Proses<br>(Direktur)</p>
-                <h5 class="dashboard-count">{{ $dashboardStats['dalam_proses_direktur'] }}</h5>
-                <i class="bi bi-bar-chart-line dashboard-icon text-warning"></i>
-            </div>
+            <a href="{{ route('wadir.persetujuan', ['status' => 'paraf']) }}" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <p class="dashboard-title">Dalam Proses<br>(Direktur)</p>
+                    <h5 class="dashboard-count">{{ $dashboardStats['dalam_proses_direktur'] }}</h5>
+                    <i class="bi bi-bar-chart-line dashboard-icon text-warning"></i>
+                </div>
+            </a>
         </div>
-        {{-- Bertugas --}}
+        
+        {{-- Bertugas -> mengarah ke History --}}
         <div class="col-6 col-md-3">
-            <div class="dashboard-card">
-                <p class="dashboard-title">Bertugas</p>
-                <h5 class="dashboard-count">{{ $dashboardStats['bertugas'] }}</h5>
-                <i class="bi bi-people dashboard-icon text-info"></i>
-            </div>
+            <a href="{{ route('history.index') }}" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <p class="dashboard-title">Bertugas</p>
+                    <h5 class="dashboard-count">{{ $dashboardStats['bertugas'] }}</h5>
+                    <i class="bi bi-people dashboard-icon text-info"></i>
+                </div>
+            </a>
         </div>
-        {{-- Dikembalikan / Ditolak (Tambahan) --}}
-        {{-- Jika Anda ingin ini juga muncul sebagai kartu, tambahkan div ini --}}
+        
+        {{-- Dikembalikan / Ditolak -> mengarah ke Persetujuan dengan filter "Ditolak" --}}
         <div class="col-6 col-md-3">
-            <div class="dashboard-card">
-                <p class="dashboard-title">Dikembalikan/<br>Ditolak</p>
-                <h5 class="dashboard-count">{{ $dashboardStats['dikembalikan_ditolak'] }}</h5>
-                <i class="bi bi-x-circle dashboard-icon text-danger"></i>
-            </div>
+            <a href="{{ route('wadir.persetujuan', ['status' => 'ditolak']) }}" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <p class="dashboard-title">Dikembalikan/<br>Ditolak</p>
+                    <h5 class="dashboard-count">{{ $dashboardStats['dikembalikan_ditolak'] }}</h5>
+                    <i class="bi bi-x-circle dashboard-icon text-danger"></i>
+                </div>
+            </a>
         </div>
     </div>
 

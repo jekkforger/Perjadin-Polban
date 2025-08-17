@@ -3,6 +3,7 @@
 @section('title', 'Review Surat Tugas')
 @section('direktur_content')
   <div class="container-fluid">
+<div class="direktur-container px-4 py-3">
     <h1 class="direktur-page-title mb-4">Review Surat Tugas</h1>
 
     <div class="p-4 shadow-sm bg-white rounded">
@@ -465,6 +466,7 @@
       </div>
     </div>
     </div>
+  </div>
   </div>
 @endsection
 

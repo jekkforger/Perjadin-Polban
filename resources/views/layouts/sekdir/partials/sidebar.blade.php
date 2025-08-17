@@ -22,6 +22,12 @@
             </span>
             <span class="description">Nomor Surat</span>
         </a>
+        <a href="{{ route('history.index') }}" class="nav-link {{ Request::routeIs('history.index') ? 'active' : '' }}">
+            <span class="icon">
+                <i class="bi bi-clock-history"></i>
+            </span>
+            <span class="description">History</span>
+        </a>
 
         {{-- Ganti Role Link (dengan Submenu) --}}
         @php

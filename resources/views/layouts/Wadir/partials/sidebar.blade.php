@@ -23,11 +23,17 @@
             </span>
             <span class="description">Persetujuan</span>
         </a>
-        <a href="{{ route('wadir.paraf') }}" class="nav-link {{ Request::routeIs('wadir.paraf') ? 'active' : '' }}">
+        {{-- <a href="{{ route('wadir.paraf') }}" class="nav-link {{ Request::routeIs('wadir.paraf') ? 'active' : '' }}">
             <span class="icon">
                 <i class="bi bi-pen"></i>
             </span>
             <span class="description">Paraf</span>
+        </a> --}}
+        <a href="{{ route('history.index') }}" class="nav-link {{ Request::routeIs('history.index') ? 'active' : '' }}">
+            <span class="icon">
+                <i class="bi bi-clock-history"></i>
+            </span>
+            <span class="description">History</span>
         </a>
 
         {{-- Ganti Role Link (dengan Submenu) --}}

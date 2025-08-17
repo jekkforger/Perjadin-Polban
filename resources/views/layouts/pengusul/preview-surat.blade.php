@@ -96,10 +96,10 @@
 </div>
 
 <!-- Pindahkan Tombol Kembali dan Usulkan di luar surat-tugas-body -->
-<div class="p-4 d-flex justify-content-between surat-tugas-actions">
+{{-- <div class="p-4 d-flex justify-content-between surat-tugas-actions">
     <button type="button" class="btn btn-secondary" id="back-to-form">Kembali</button>
     <button type="button" class="btn btn-primary" id="submit-surat">Usulkan</button>
-</div>
+</div> --}}
 
 @push('styles')
   <link rel="stylesheet" href="{{ asset('css/template-surat.css') }}">

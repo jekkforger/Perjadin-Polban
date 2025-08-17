@@ -139,7 +139,7 @@
             </select>
           </div>
 
-          {{-- ======================= AWAL REVISI ======================= --}}
+          
           <!-- Elemen untuk menampilkan feedback real-time -->
           <div id="nomor-surat-feedback" class="mt-2" style="font-size: 0.9em;"></div>
 
@@ -156,7 +156,6 @@
                   </div>
               </div>
           </div>
-          {{-- ======================= AKHIR REVISI ======================= --}}
 
           <div id="nomor_surat_error_container" class="invalid-feedback d-block mt-2"></div>
           @error('nomor_surat_usulan_jurusan')
@@ -180,9 +179,9 @@
     </div>
 
     <!-- Tombol Lanjut -->
-    <div class="button-next mt-3">
+    {{-- <div class="button-next mt-3">
       <button type="button" class="btn btn-primary" id="next-to-personel">Selanjutnya</button>
-    </div>
+    </div> --}}
   </div>
 </form>
 

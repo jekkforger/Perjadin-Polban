@@ -66,18 +66,51 @@
                                 {{ $tugas->tanggal_berangkat->format('d M Y') }} → {{ $tugas->tanggal_kembali->format('d M Y') }}
                             @endif
                         </td>
-                        <td>{{ $tugas->nomor_surat ?? '-' }}</td>
+                        <td>{{ $tugas->nomor_surat_tugas_resmi ?? '-' }}</td>
                         <td>{{ $tugas->sumber_dana ?? '-' }}</td>
                         <td>
-                            {{-- Tombol Upload --}}
-                            <button type="button"
-                                class="btn btn-sm btn-success mb-1"
-                                data-bs-toggle="modal"
-                                data-bs-target="#uploadBuktiModal-{{ $tugas->surat_tugas_id }}">
-                                <i class="fas fa-upload"></i> Upload Bukti
-                            </button>
+                            @php
+                                // Menggunakan Carbon untuk mempermudah perbandingan tanggal
+                                $today = \Carbon\Carbon::now()->startOfDay();
+                                $tanggalKembali = \Carbon\Carbon::parse($tugas->tanggal_kembali)->startOfDay();
+                                $batasAkhirUpload = $tanggalKembali->copy()->addDays(5)->endOfDay();
 
-                            {{-- Tombol Lihat --}}
+                                // Cek apakah hari ini SETELAH atau SAMA DENGAN tanggal kembali
+                                $sudahWaktunyaUpload = $today->isAfter($tanggalKembali) || $today->isSameDay($tanggalKembali);
+                                
+                                // Cek apakah hari ini SEBELUM batas akhir upload
+                                $belumTerlambat = $today->isBefore($batasAkhirUpload);
+
+                                // Tombol aktif jika KEDUA kondisi terpenuhi
+                                $bisaUpload = $sudahWaktunyaUpload && $belumTerlambat;
+                                
+                                $tooltipMessage = '';
+                                if (!$sudahWaktunyaUpload) {
+                                    $tooltipMessage = 'Anda baru bisa upload bukti setelah tanggal pelaksanaan selesai.';
+                                } elseif (!$belumTerlambat) {
+                                    $tooltipMessage = 'Batas waktu upload bukti (5 hari setelah selesai) telah terlewat.';
+                                }
+                            @endphp
+
+                            {{-- Tombol Upload dengan logika disabled dan tooltip --}}
+                            <span 
+                                @if(!$bisaUpload) 
+                                    class="d-inline-block" tabindex="0" 
+                                    data-bs-toggle="tooltip" 
+                                    data-bs-placement="top"
+                                    title="{{ $tooltipMessage }}"
+                                @endif
+                            >
+                                <button type="button"
+                                    class="btn btn-sm btn-success mb-1"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#uploadBuktiModal-{{ $tugas->surat_tugas_id }}"
+                                    @if(!$bisaUpload) disabled @endif>
+                                    <i class="fas fa-upload"></i> Upload Bukti
+                                </button>
+                            </span>
+
+                            {{-- Tombol Lihat Bukti (selalu aktif) --}}
                             <a href="{{ route('pelaksana.lihatBukti', $tugas->surat_tugas_id) }}" class="btn btn-info btn-sm mb-1">
                                 <i class="fas fa-eye"></i> Lihat Bukti
                             </a>
@@ -121,26 +154,17 @@
                             {{-- Jenis Dokumen --}}
                             <div class="mb-3">
                                 <label class="form-label d-block mb-2">Jenis Dokumen</label>
-
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="jenis_dokumen" id="dokumen1-{{ $tugas->surat_tugas_id }}" value="Laporan Perjalanan Dinas" required>
-                                    <label class="form-check-label" for="dokumen1-{{ $tugas->surat_tugas_id }}">
-                                        Laporan Perjalanan Dinas
-                                    </label>
+                                    <label class="form-check-label" for="dokumen1-{{ $tugas->surat_tugas_id }}">Laporan Perjalanan Dinas</label>
                                 </div>
-
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="jenis_dokumen" id="dokumen2-{{ $tugas->surat_tugas_id }}" value="Surat Visum">
-                                    <label class="form-check-label" for="dokumen2-{{ $tugas->surat_tugas_id }}">
-                                        Surat Visum
-                                    </label>
+                                    <label class="form-check-label" for="dokumen2-{{ $tugas->surat_tugas_id }}">Surat Visum</label>
                                 </div>
-
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="jenis_dokumen" id="dokumen3-{{ $tugas->surat_tugas_id }}" value="Bukti Perjalanan Dinas">
-                                    <label class="form-check-label" for="dokumen3-{{ $tugas->surat_tugas_id }}">
-                                        Bukti Perjalanan Dinas
-                                    </label>
+                                    <label class="form-check-label" for="dokumen3-{{ $tugas->surat_tugas_id }}">Bukti Perjalanan Dinas</label>
                                 </div>
                             </div>
 
@@ -153,12 +177,8 @@
                                     <span class="text-primary">Pilih file</span>
                                     <input type="file" name="file[]" multiple id="file-{{ $tugas->surat_tugas_id }}" class="d-none file-input" accept=".jpg,.jpeg,.png,.pdf" required>
                                 </label>
-
                                 <div id="preview-nama-file-{{ $tugas->surat_tugas_id }}" class="mt-2 text-muted"></div>
-
-                                <small class="text-muted d-block mt-2">
-                                    Format: JPG, PNG, PDF. Maks 2MB per file.
-                                </small>
+                                <small class="text-muted d-block mt-2">Format: JPG, PNG, PDF. Maks 2MB per file.</small>
                             </div>
 
                             <div class="d-flex justify-content-end">
@@ -182,7 +202,14 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    // Inisialisasi semua tooltip di halaman ini
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Skrip untuk preview nama file
         document.querySelectorAll('.file-input').forEach(input => {
             input.addEventListener('change', function(e) {
                 const files = e.target.files;
@@ -199,7 +226,6 @@
                 } else {
                     fileList = 'Tidak ada file dipilih';
                 }
-
                 document.getElementById(previewId).innerHTML = fileList;
             });
         });

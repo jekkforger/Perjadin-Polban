@@ -94,4 +94,9 @@ class SuratTugas extends Model
     {
         return $this->belongsTo(User::class, 'direktur_approver_id', 'id');
     }
+
+    public function sekdirProcessor()
+    {
+        return $this->belongsTo(User::class, 'sekdir_processor_id', 'id');
+    }
 }

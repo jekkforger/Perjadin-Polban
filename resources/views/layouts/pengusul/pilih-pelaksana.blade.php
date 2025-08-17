@@ -137,9 +137,9 @@
   </div>
 
   <!-- Tombol Aksi -->
-  <div class="button-next mt-3 d-flex gap-2">
+  {{-- <div class="button-next mt-3 d-flex gap-2">
     <button type="button" class="btn btn-secondary" id="back">Kembali</button>
     <button type="button" class="btn btn-success" id="create-task">Buat Surat Tugas</button>
     <button type="button" class="btn btn-warning" id="save-draft">Simpan Draft</button>
-  </div>
+  </div> --}}
 </div>

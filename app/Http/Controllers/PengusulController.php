@@ -14,7 +14,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
-use Barryvdh\DomPDF\Facade\Pdf; 
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
 
 
 class PengusulController extends Controller
@@ -119,45 +120,71 @@ class PengusulController extends Controller
     }
 
     public function editDraft($draft_id)
-    {
-        $draft = SuratTugas::with(['detailPelaksanaTugas.personable'])
-            ->where('surat_tugas_id', $draft_id)
-            ->where('user_id', Auth::id())
-            ->where('status_surat', 'draft')
-            ->firstOrFail();
-        $pegawais = Pegawai::all();
-        $mahasiswa = Mahasiswa::all();
-        $draftData = [
-            'nama_kegiatan' => $draft->perihal_tugas,
-            'tempat_kegiatan' => $draft->tempat_kegiatan,
-            'diusulkan_kepada' => $draft->diusulkan_kepada,
-            'surat_undangan' => $draft->path_file_surat_usulan ? asset('storage/' . $draft->path_file_surat_usulan) : null,
-            'nama_penyelenggara' => $draft->nama_penyelenggara,
-            'tanggal_pelaksanaan' => Carbon::parse($draft->tanggal_berangkat)->format('d/m/Y') . ' → ' . Carbon::parse($draft->tanggal_kembali)->format('d/m/Y'),
-            'alamat_kegiatan' => $draft->alamat_kegiatan,
-            'provinsi' => $draft->kota_tujuan,
-            'nomor_surat_usulan' => $draft->nomor_surat_usulan_jurusan,
-            'pembiayaan' => $draft->sumber_dana,
-            'pagu_desentralisasi' => $draft->pagu_desentralisasi,
-            'pagu_nominal' => $draft->pagu_nominal,
-        ];
-        $selectedPersonel = $draft->detailPelaksanaTugas->map(function ($detail) {
-            return [
-                'id' => $detail->personable_id,
-                'type' => $detail->personable_type === Pegawai::class ? 'pegawai' : 'mahasiswa',
-                'nama' => $detail->personable->nama,
-                'nip' => $detail->personable_type === Pegawai::class ? ($detail->personable->nip ?? '-') : null,
-                'pangkat' => $detail->personable_type === Pegawai::class ? ($detail->personable->pangkat ?? '-') : null,
-                'golongan' => $detail->personable_type === Pegawai::class ? ($detail->personable->golongan ?? '-') : null,
-                'jabatan' => $detail->personable_type === Pegawai::class ? ($detail->personable->jabatan ?? '-') : null,
-                'nim' => $detail->personable_type === Mahasiswa::class ? ($detail->personable->nim ?? '-') : null,
-                'jurusan' => $detail->personable_type === Mahasiswa::class ? ($detail->personable->jurusan ?? '-') : null,
-                'prodi' => $detail->personable_type === Mahasiswa::class ? ($detail->personable->prodi ?? '-') : null,
-            ];
-        })->toArray();
-        \Log::info('Selected Personel for Draft ID: ' . $draft_id, $selectedPersonel);
-        return view('layouts.pengusul.pengusulan', compact('pegawais', 'mahasiswa', 'draftData', 'selectedPersonel', 'draft'));
+{
+    $draft = SuratTugas::with(['detailPelaksanaTugas.personable'])
+        ->where('surat_tugas_id', $draft_id)
+        ->where('user_id', Auth::id())
+        ->whereIn('status_surat', ['draft', 'reverted_by_wadir', 'reverted_by_direktur'])
+        ->firstOrFail();
+
+    $pegawais = Pegawai::all();
+    $mahasiswa = Mahasiswa::all();
+    
+    // <-- TAMBAHKAN BLOK KODE INI -->
+    $suratSettings = TemplateSurat::find(1);
+    if (!$suratSettings) {
+        $suratSettings = new TemplateSurat(); // Buat objek kosong jika belum ada
     }
+    // <-- AKHIR BLOK KODE TAMBAHAN -->
+
+    $tahunSekarang = now()->year;
+    $tahunList = [$tahunSekarang, $tahunSekarang - 1];
+    $kodePerihal = 'RT.01.00';
+    $kodePengusul = Auth::user()->kode_pengusul ?? '';
+
+    $draftData = [
+        'nama_kegiatan' => $draft->perihal_tugas,
+        'tempat_kegiatan' => $draft->tempat_kegiatan,
+        'diusulkan_kepada' => $draft->diusulkan_kepada,
+        'surat_undangan' => $draft->path_file_surat_usulan ? asset('storage/' . $draft->path_file_surat_usulan) : null,
+        'nama_penyelenggara' => $draft->nama_penyelenggara,
+        'tanggal_pelaksanaan' => Carbon::parse($draft->tanggal_berangkat)->format('d/m/Y') . ' → ' . Carbon::parse($draft->tanggal_kembali)->format('d/m/Y'),
+        'alamat_kegiatan' => $draft->alamat_kegiatan,
+        'provinsi' => $draft->kota_tujuan,
+        'nomor_surat_usulan' => $draft->nomor_surat_usulan_jurusan,
+        'pembiayaan' => $draft->sumber_dana,
+        'pagu_desentralisasi' => $draft->pagu_desentralisasi,
+        'pagu_nominal' => $draft->pagu_nominal,
+    ];
+
+    $selectedPersonel = $draft->detailPelaksanaTugas->map(function ($detail) {
+        return [
+            'id' => $detail->personable_id,
+            'type' => $detail->personable_type === Pegawai::class ? 'pegawai' : 'mahasiswa',
+            'nama' => $detail->personable->nama,
+            'nip' => $detail->personable_type === Pegawai::class ? ($detail->personable->nip ?? '-') : null,
+            'pangkat' => $detail->personable_type === Pegawai::class ? ($detail->personable->pangkat ?? '-') : null,
+            'golongan' => $detail->personable_type === Pegawai::class ? ($detail->personable->golongan ?? '-') : null,
+            'jabatan' => $detail->personable_type === Pegawai::class ? ($detail->personable->jabatan ?? '-') : null,
+            'nim' => $detail->personable_type === Mahasiswa::class ? ($detail->personable->nim ?? '-') : null,
+            'jurusan' => $detail->personable_type === Mahasiswa::class ? ($detail->personable->jurusan ?? '-') : null,
+            'prodi' => $detail->personable_type === Mahasiswa::class ? ($detail->personable->prodi ?? '-') : null,
+        ];
+    })->toArray();
+    
+    // <-- PERBAIKI JUGA BAGIAN compact() -->
+    return view('layouts.pengusul.pengusulan', compact(
+        'pegawais', 
+        'mahasiswa', 
+        'draftData', 
+        'selectedPersonel', 
+        'draft',
+        'suratSettings', // <-- Pastikan ini ditambahkan
+        'tahunList',
+        'kodePerihal',
+        'kodePengusul'
+    ));
+}
 
     public function history(Request $request)
 {
@@ -379,9 +406,9 @@ class PengusulController extends Controller
     public function getUsedNomorSurat()
     {
         $usedNumbers = SuratTugas::where('user_id', auth()->id())
-            ->where('created_at', '>=', now()->subDays(30))
+            ->where('created_at', '>=', now()->subDays(30)) // Ambil 30 hari terakhir
             ->orderBy('created_at', 'desc')
-            ->take(10)
+            ->take(10) // Ambil 10 terbaru
             ->pluck('nomor_surat_usulan_jurusan');
 
         return response()->json(['used_numbers' => $usedNumbers]);
@@ -398,29 +425,58 @@ class PengusulController extends Controller
         $tahun = $request->query('tahun_nomor_surat');
 
         $fullNomorSurat = $nomorUrutan . '/' . $kodePengusul . '/' . $kodePerihal . '/' . $tahun;
+        
         $isUsed = SuratTugas::where('nomor_surat_usulan_jurusan', $fullNomorSurat)->exists();
 
         return response()->json(['is_used' => $isUsed]);
     }
 
-    public function show($id)
+    /**
+     * Endpoint AJAX untuk mengambil nomor urut terakhir yang digunakan oleh pengusul.
+     */
+    /**
+     * Endpoint AJAX untuk mengambil nomor urut terakhir yang digunakan oleh pengusul.
+     * VERSI PERBAIKAN FINAL
+     */
+    public function getLatestNomorUrut(Request $request)
     {
-        // Ambil data surat tugas berdasarkan ID, dan pastikan surat itu milik user yang sedang login (untuk keamanan)
-        $suratTugas = SuratTugas::with(['detailPelaksanaTugas.personable', 'wadirApprover', 'direkturApprover'])
-            ->where('surat_tugas_id', $id)
-            ->where('user_id', Auth::id()) // Penting untuk keamanan!
-            ->firstOrFail(); // Akan menampilkan error 404 jika tidak ditemukan
+        $request->validate(['tahun' => 'required|digits:4']);
 
-        // Ambil data template surat untuk kop dan nama direktur
-        $suratSettings = TemplateSurat::find(1);
-        if (!$suratSettings) {
-            $suratSettings = new TemplateSurat(); // Buat objek kosong jika belum ada
-        }
+        $tahun = $request->query('tahun');
+        $kodePengusul = Auth::user()->kode_pengusul;
+        $kodePerihal = 'RT.01.00'; // Pastikan ini sesuai dengan yang di form
 
-        // Kirim data ke view baru yang akan kita buat
-        return view('layouts.pengusul.show', compact('suratTugas', 'suratSettings'));
+        // Pola yang akan dicari di database, contoh: "%/KO/RT.01.00/2025"
+        $pattern = '%/' . $kodePengusul . '/' . $kodePerihal . '/' . $tahun;
+
+        // Query untuk mencari nomor urut tertinggi dari string nomor surat
+        // Ini akan memfilter baris yang cocok dengan pola tahun dan kode,
+        // lalu mengambil angka sebelum '/' pertama dan mencari nilai maksimumnya.
+        $latestNomor = SuratTugas::where('user_id', auth()->id())
+            ->where('nomor_surat_usulan_jurusan', 'like', $pattern)
+            ->select(DB::raw('MAX(CAST(SUBSTRING_INDEX(nomor_surat_usulan_jurusan, "/", 1) AS UNSIGNED)) as max_nomor'))
+            ->value('max_nomor');
+
+        // Jika tidak ada surat sama sekali yang cocok, hasilnya akan null.
+        // Kita ubah null menjadi 0.
+        return response()->json(['latest_nomor' => (int)$latestNomor ?? 0]);
     }
     
+    public function show($id)
+    {
+        $suratTugas = SuratTugas::with(['detailPelaksanaTugas.personable', 'wadirApprover', 'direkturApprover'])
+            ->where('surat_tugas_id', $id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        $suratSettings = TemplateSurat::find(1);
+        if (!$suratSettings) {
+            $suratSettings = new TemplateSurat();
+        }
+
+        return view('layouts.pengusul.show', compact('suratTugas', 'suratSettings'));
+    }
+        
     public function previewSurat(Request $request)
     {
         $selectedPersonel = [];
@@ -470,25 +526,72 @@ class PengusulController extends Controller
 
     public function downloadPdf($id)
     {
-        $suratTugas = SuratTugas::where('surat_tugas_id', $id)
-                                ->where('user_id', Auth::id()) // Pastikan hanya pengusul yang mengajukan yang bisa download
-                                ->where('status_surat', 'diterbitkan') // Hanya surat yang sudah diterbitkan
-                                ->firstOrFail();
-        // Ambil pengaturan template surat
+        $suratTugas = SuratTugas::with(['detailPelaksanaTugas.personable'])
+        ->whereIn('status_surat', ['pending_direktur_review', 'diterbitkan']) // Izinkan dua status ini
+        ->findOrFail($id);
+
+        $user = Auth::user();
+        $isAllowed = false;
+
+        // ===================================================================
+        // <-- AWAL BLOK KODE YANG DIPERBAIKI (LOGIKA OTORISASI) -->
+        // ===================================================================
+
+        // 1. Cek apakah user adalah PENGUSUL surat ini
+        if ($suratTugas->user_id == $user->id) {
+            $isAllowed = true;
+        }
+
+        // 2. Cek apakah user adalah PELAKSANA di surat ini
+        if (!$isAllowed && $user->pegawai_id) {
+            $isAllowed = $suratTugas->detailPelaksanaTugas()
+                                    ->where('personable_id', $user->pegawai_id)
+                                    ->where('personable_type', \App\Models\Pegawai::class)
+                                    ->exists();
+        }
+        
+        // 3. Cek apakah user adalah WADIR yang menyetujui surat ini
+        if (!$isAllowed) {
+            $isAllowed = $suratTugas->wadir_approver_id == $user->id;
+        }
+
+        // 4. Cek apakah user adalah DIREKTUR yang menyetujui surat ini
+        if (!$isAllowed) {
+            $isAllowed = $suratTugas->direktur_approver_id == $user->id;
+        }
+        
+        // 5. Cek apakah user adalah SEKDIR yang memproses surat ini
+        if (!$isAllowed) {
+            $isAllowed = $suratTugas->sekdir_processor_id == $user->id;
+        }
+
+        // 6. Cek apakah user memiliki role ADMIN atau BKU (bisa melihat semua)
+        if (!$isAllowed) {
+            $isAllowed = in_array($user->role, ['admin', 'bku']);
+        }
+
+        // Jika setelah semua pengecekan tetap tidak diizinkan, tolak akses
+        if (!$isAllowed) {
+            abort(403, 'Anda tidak memiliki hak untuk mengakses atau mengunduh surat tugas ini.');
+        }
+
+        // ===================================================================
+        // <-- AKHIR BLOK KODE YANG DIPERBAIKI -->
+        // ===================================================================
+
+        // Logika pembuatan PDF tetap sama
         $suratSettings = TemplateSurat::find(1);
         if (!$suratSettings) {
-            // Buat objek kosong default jika data belum ada di database
             $suratSettings = new \stdClass();
             $suratSettings->nama_kementerian = 'KEMENTERIAN PENDIDIKAN TINGGI, SAINS, DAN TEKNOLOGI';
             $suratSettings->nama_direktur = '[Nama Direktur Belum Diatur]';
             $suratSettings->nip_direktur = '[NIP Direktur Belum Diatur]';
             $suratSettings->tembusan_default = [];
         }
-        // Render view template PDF dengan data surat tugas DAN data settings
+
         $pdf = Pdf::loadView('pdf.surat_tugas_template', compact('suratTugas', 'suratSettings'));
-        // Nama file PDF
         $fileName = 'Surat_Tugas_' . str_replace('/', '_', $suratTugas->nomor_surat_tugas_resmi) . '.pdf';
-        // Download file
+        
         return $pdf->download($fileName);
     }
 }

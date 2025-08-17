@@ -5,43 +5,62 @@
 <div class="dashboard-container px-4 py-3">
   <h1 class="dashboard-page-title mb-4">Dashboard</h1>
 
-  <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
+<div class="row g-3 mb-4">
+    {{-- Total Usulan -> mengarah ke History --}}
+    <div class="col-6 col-md-3">
+        <a href="{{ route('history.index') }}" class="text-decoration-none">
             <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
                 <p class="fw-semibold mb-1">Total Usulan</p>
                 <h5 class="fw-bold mb-2">{{ $totalUsulan ?? 0 }}</h5>
                 <i class="bi bi-file-earmark-text fs-4 text-primary"></i>
             </div>
-        </div>
-        <div class="col-6 col-md-3">
+        </a>
+    </div>
+    
+    {{-- Laporan Selesai -> mengarah ke History dengan filter (jika ada) atau History umum --}}
+    <div class="col-6 col-md-3">
+        <a href="{{ route('history.index', ['status' => 'laporan_selesai']) }}" class="text-decoration-none">
             <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
                 <p class="fw-semibold mb-1">Laporan Selesai</p>
                 <h5 class="fw-bold mb-2">{{ $laporanSelesai ?? 0 }}</h5>
-                <i class="bi bi-plus fs-4 text-success"></i>
+                <i class="bi bi-check2-circle fs-4 text-success"></i>
             </div>
-        </div>
-        <div class="col-6 col-md-3">
+        </a>
+    </div>
+
+    {{-- Laporan Belum Selesai -> mengarah ke halaman Status --}}
+    <div class="col-6 col-md-3">
+        <a href="{{ route('pengusul.status') }}" class="text-decoration-none">
             <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
                 <p class="fw-semibold mb-1">Laporan Belum Selesai</p>
                 <h5 class="fw-bold mb-2">{{ $laporanBelumSelesai ?? 0 }}</h5>
                 <i class="bi bi-bar-chart-line fs-4 text-warning"></i>
             </div>
-        </div>
-        <div class="col-6 col-md-3">
+        </a>
+    </div>
+
+    {{-- Bertugas -> mengarah ke halaman Status --}}
+    <div class="col-6 col-md-3">
+        <a href="{{ route('pengusul.status') }}" class="text-decoration-none">
             <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
                 <p class="fw-semibold mb-1">Bertugas</p>
                 <h5 class="fw-bold mb-2">{{ $sedangBertugas ?? 0 }}</h5>
                 <i class="bi bi-people fs-4 text-info"></i>
             </div>
-        </div>
-	      <div class="col-6 col-md-3">
+        </a>
+    </div>
+
+    {{-- Dikembalikan -> mengarah ke halaman Status --}}
+    <div class="col-6 col-md-3">
+        <a href="{{ route('pengusul.status') }}" class="text-decoration-none">
             <div class="p-4 shadow-sm bg-white rounded text-center dashboard-card">
                 <p class="fw-semibold mb-1">Dikembalikan</p>
                 <h5 class="fw-bold mb-2">{{ $dikembalikan ?? 0 }}</h5>
-                <i class="bi bi-people fs-4 text-info"></i>
+                <i class="bi bi-arrow-return-left fs-4 text-danger"></i>
             </div>
-        </div>
+        </a>
     </div>
+</div>
 
   {{-- Card Detail Pengusulan Terbaru --}}
   <div class="p-4 shadow-sm bg-white rounded text-left">
@@ -84,9 +103,15 @@
                     </td>
                     <td>
                         {{-- Aksi View / Edit --}}
-                        <a href="#" class="btn btn-sm btn-outline-info">
+                        <a href="{{ route('pengusul.surat-tugas.show', $st->surat_tugas_id) }}" class="btn btn-sm btn-outline-info">
                             <i class="fas fa-eye"></i> View
                         </a>
+
+                                @if ($st->status_surat == 'draft' || Str::contains($st->status_surat, 'reverted'))
+                                    <a href="{{ route('pengusul.pengusulan', ['draft_id' => $st->surat_tugas_id]) }}" class="btn btn-sm btn-outline-warning ms-1">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                @endif
                     </td>
                 </tr>
                 @empty

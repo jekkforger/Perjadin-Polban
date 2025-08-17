@@ -1,19 +1,47 @@
-{{-- FILE: resources/views/layouts/pengusul/show.blade.php --}}
+{{-- FILE: resources/views/history/show.blade.php (VERSI FINAL YANG SUDAH DIRAPIKAN) --}}
 
-@extends('layouts.pengusul.layout')
+@extends('layouts.main')
 
 @section('title', 'Detail Surat Tugas')
-@section('pengusul_content')
+
+@section('sidebar')
+    @php
+        $loginController = new \App\Http\Controllers\Auth\LoginController();
+        $userRole = Auth::user()->role;
+        $roleDisplayName = $loginController->getRoleDisplayName($userRole);
+    @endphp
+
+    {{-- Logika untuk menampilkan sidebar yang sesuai dengan peran pengguna --}}
+    @if (in_array($userRole, ['wadir_1', 'wadir_2', 'wadir_3', 'wadir_4']))
+        @include('layouts.Wadir.partials.sidebar', ['userRole' => $userRole, 'roleDisplayName' => $roleDisplayName])
+    @elseif ($userRole == 'pengusul')
+        @include('layouts.pengusul.partials.sidebar', ['userRole' => $userRole, 'roleDisplayName' => $roleDisplayName])
+    @elseif ($userRole == 'pelaksana')
+        @include('layouts.pelaksana.partials.sidebar', ['userRole' => $userRole, 'roleDisplayName' => $roleDisplayName])
+    @elseif ($userRole == 'direktur')
+        @include('layouts.direktur.partials.sidebar', ['userRole' => $userRole, 'roleDisplayName' => $roleDisplayName])
+    @elseif ($userRole == 'bku')
+        @include('layouts.bku.partials.sidebar', ['userRole' => $userRole, 'roleDisplayName' => $roleDisplayName])
+    @elseif ($userRole == 'sekdir')
+        @include('layouts.sekdir.partials.sidebar', ['userRole' => $userRole, 'roleDisplayName' => $roleDisplayName])
+    @endif
+@endsection
+
+@section('content')
+{{-- =================================================================== --}}
+{{-- <-- AWAL PERBAIKAN STRUKTUR --> --}}
+{{-- =================================================================== --}}
+
+{{-- 1. Tambahkan DIV PEMBUNGKUS UTAMA dengan class yang benar --}}
 <div class="pengusul-container px-4 py-3">
     <h1 class="pengusul-page-title mb-4">Detail Surat Tugas</h1>
 
+    {{-- 2. Letakkan SEMUA konten lainnya di dalam div ini --}}
     <div class="p-4 shadow-sm bg-white rounded">
-        {{-- Tombol kembali bisa ke status atau history, sesuaikan jika perlu --}}
-        <a href="{{ url()->previous() }}" class="btn btn-secondary mb-3">
+        <a href="{{ route('history.index') }}" class="btn btn-secondary mb-3">
             <i class="bi bi-arrow-left"></i> Kembali
         </a>
 
-        {{-- Pratinjau Dokumen Surat Tugas (Struktur dari preview-surat.blade.php) --}}
         <div class="document-container surat-tugas-body">
             <!-- =========== HEADER =========== -->
             <div class="surat-tugas-header">
@@ -30,7 +58,7 @@
             <hr class="surat-tugas-header-line" />
 
             <!-- =========== ISI UTAMA HALAMAN =========== -->
-            <div class="surat-tugas-content">
+                <div class="surat-tugas-content">
 
               <div style="width: fit-content; margin-left: auto; margin-right: auto; transform: translateX(30px); text-align: left;">
                 <h4 class="surattugas" style="text-decoration: underline; margin-bottom: 4px;">SURAT TUGAS</h4>
@@ -141,6 +169,10 @@
         </div>
     </div>
 </div>
+
+{{-- =================================================================== --}}
+{{-- <-- AKHIR PERBAIKAN STRUKTUR --> --}}
+{{-- =================================================================== --}}
 @endsection
 
 @push('styles')

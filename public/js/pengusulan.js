@@ -26,13 +26,30 @@ let currentStep = 1;
 const formSteps = document.querySelectorAll('.form-step');
 
 function showStep(stepNumber) {
-    formSteps.forEach((step, index) => {
-        if (index + 1 === stepNumber) {
-            step.classList.add('form-step-active');
-        } else {
-            step.classList.remove('form-step-active');
-        }
+    // Sembunyikan semua langkah form
+    formSteps.forEach(step => {
+        step.classList.remove('form-step-active');
     });
+    // Tampilkan langkah yang aktif
+    formSteps[stepNumber - 1].classList.add('form-step-active');
+    
+    // ===================================================================
+    // <-- AWAL BLOK KONTROL TOMBOL BARU -->
+    // ===================================================================
+    // Sembunyikan semua tombol navigasi terlebih dahulu
+    $('#btn-kembali, #next-to-personel, #save-draft, #create-task, #submit-surat').hide();
+
+    // Tampilkan tombol yang sesuai berdasarkan langkah saat ini
+    if (stepNumber === 1) {
+        $('#next-to-personel').show();
+    } else if (stepNumber === 2) {
+        $('#btn-kembali').show();
+        $('#save-draft').show();
+        $('#create-task').show();
+    } else if (stepNumber === 3) {
+        $('#btn-kembali').show();
+        $('#submit-surat').show();
+    }
     // Ensure correct table is shown and DataTables redraws if needed
     if (stepNumber === 2) {
         // Restore correct table visibility
@@ -128,8 +145,128 @@ function displayUsedNomorSurat() {
     }
 }
 
+
+// Semua logika sekarang berada di dalam $(document).ready()
 $(document).ready(function () {
     showStep(1);
+
+    // ===================================================================
+    // BLOK VALIDASI NOMOR SURAT (VERSI FINAL)
+    // ===================================================================
+    const nomorUrutInput = $('input[name="nomor_urutan_surat"]');
+    const tahunSelect = $('select[name="tahun_nomor_surat"]');
+    const feedbackDiv = $('#nomor-surat-feedback');
+    const nextButton = $('#next-to-personel');
+    const nomorTerpakaiList = $('#nomor-surat-list-ul');
+
+    let latestNomorUrut = 0;
+    const MAX_NOMOR_GAP = 5;
+
+    function debounce(func, delay) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), delay);
+        };
+    }
+
+    const fetchLatestNomorUrut = async (tahun) => {
+        try {
+            const response = await fetch(`/pengusul/get-latest-nomor?tahun=${tahun}`);
+            const data = await response.json();
+            latestNomorUrut = data.latest_nomor;
+            console.log(`Nomor terakhir untuk tahun ${tahun} adalah: ${latestNomorUrut}`);
+            await checkNomorAvailability(); // Validasi ulang setelah mendapat nomor terbaru
+        } catch (error) {
+            console.error('Error fetching latest number:', error);
+            latestNomorUrut = 0;
+        }
+    };
+
+    const checkNomorAvailability = async () => {
+        const nomorUrut = nomorUrutInput.val().trim();
+        const tahun = tahunSelect.val();
+        const kodePengusul = $('input[name="kode_pengusul"]').val();
+        const kodePerihal = $('input[name="kode_perihal"]').val();
+
+        if (!nomorUrut) {
+            feedbackDiv.html('');
+            nextButton.prop('disabled', true).data('status', '');
+            return;
+        }
+
+        const currentNomor = parseInt(nomorUrut, 10);
+        if (isNaN(currentNomor)) {
+            feedbackDiv.html('<span class="text-danger fw-bold"><i class="bi bi-x-circle-fill"></i> Nomor urut harus berupa angka.</span>').data('status', 'error');
+            nextButton.prop('disabled', true);
+            return;
+        }
+
+        if (currentNomor > latestNomorUrut + MAX_NOMOR_GAP) {
+            const maxAllowed = latestNomorUrut + MAX_NOMOR_GAP;
+            feedbackDiv.html(`<span class="text-danger fw-bold"><i class="bi bi-x-circle-fill"></i> Nomor urut terlalu jauh. Nomor terakhir adalah ${latestNomorUrut}, maksimal nomor berikutnya adalah ${maxAllowed}.</span>`).data('status', 'error');
+            nextButton.prop('disabled', true);
+            return;
+        }
+        
+        if (currentNomor <= latestNomorUrut) {
+             feedbackDiv.html(`<span class="text-danger fw-bold"><i class="bi bi-x-circle-fill"></i> Nomor urut harus lebih besar dari nomor terakhir (${latestNomorUrut}).</span>`).data('status', 'error');
+            nextButton.prop('disabled', true);
+            return;
+        }
+
+        feedbackDiv.html('<span class="text-muted">Mengecek...</span>').data('status', 'checking');
+
+        try {
+            const response = await fetch(`/pengusul/check-nomor-surat?nomor_urutan_surat=${nomorUrut}&kode_pengusul=${kodePengusul}&kode_perihal=${kodePerihal}&tahun_nomor_surat=${tahun}`);
+            const data = await response.json();
+
+            if (data.is_used) {
+                feedbackDiv.html('<span class="text-danger fw-bold"><i class="bi bi-x-circle-fill"></i> Nomor surat sudah digunakan.</span>').data('status', 'used');
+                nextButton.prop('disabled', true);
+            } else {
+                feedbackDiv.html('<span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> Nomor surat tersedia.</span>').data('status', 'available');
+                nextButton.prop('disabled', false);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            feedbackDiv.html('<span class="text-danger">Gagal memeriksa nomor surat.</span>').data('status', 'error');
+            nextButton.prop('disabled', true);
+        }
+    };
+
+    const loadUsedNumbers = async () => {
+        try {
+            const response = await fetch('/pengusul/used-nomor-surat');
+            const data = await response.json();
+            nomorTerpakaiList.empty();
+            if (data.used_numbers && data.used_numbers.length > 0) {
+                data.used_numbers.forEach(nomor => {
+                    nomorTerpakaiList.append(`<li>${nomor}</li>`);
+                });
+            } else {
+                nomorTerpakaiList.append('<li class="text-muted">Tidak ada nomor yang digunakan dalam 30 hari terakhir.</li>');
+            }
+        } catch (error) {
+            console.error('Error loading used numbers:', error);
+            nomorTerpakaiList.html('<li class="text-danger">Gagal memuat daftar.</li>');
+        }
+    };
+
+    const debouncedCheck = debounce(checkNomorAvailability, 500);
+    nomorUrutInput.on('input', debouncedCheck);
+    
+    tahunSelect.on('change', function() {
+        fetchLatestNomorUrut($(this).val());
+    });
+
+    loadUsedNumbers();
+    fetchLatestNomorUrut(tahunSelect.val());
+    
+    if (!nomorUrutInput.val()) {
+        nextButton.prop('disabled', true);
+    }
+
 
     if (!$.fn.DataTable.isDataTable('#pegawaiTable')) {
         $('#pegawaiTable').DataTable({

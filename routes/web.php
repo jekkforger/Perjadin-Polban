@@ -14,6 +14,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\BkuController;
 use App\Http\Controllers\SekdirController;
 use App\Http\Controllers\ParafController;
+use App\Http\Controllers\HistoryController;
 
 // Halaman awal untuk memilih role (akan diakses di root URL: '/')
 Route::get('/', [LoginController::class, 'showSelectRoleForm'])->name('login.select-role');
@@ -38,7 +39,7 @@ Route::prefix('pengusul')->name('pengusul.')->middleware('auth')->group(function
     Route::get('/draft', [PengusulController::class, 'draft'])->name('draft');
     Route::post('/pengusul/draft/delete-session', [PengusulController::class, 'deleteDraftSession'])->name('pengusul.draft.delete.session');
     Route::delete('/draft/{id}', [PengusulController::class, 'deleteDraft'])->name('draft.delete');
-    Route::get('/pengusul/pengusulan/{draft_id}', [PengusulController::class, 'editDraft'])->name('pengusul.pengusulan');
+    Route::get('/pengusul/pengusulan/{draft_id}', [PengusulController::class, 'editDraft'])->name('pengusulan');
     Route::get('/history', [PengusulController::class, 'history'])->name('history');
     Route::get('/pilihpengusul', [PengusulController::class, 'pilih'])->name('pilih');
     Route::post('/surat-tugas/storeStep1', [PengusulController::class, 'storeStep1'])->name('surat-tugas.storeStep1');
@@ -52,6 +53,7 @@ Route::prefix('pengusul')->name('pengusul.')->middleware('auth')->group(function
     
     // Rute untuk mendapatkan daftar nomor yang sudah digunakan
     Route::get('/used-nomor-surat', [PengusulController::class, 'getUsedNomorSurat'])->name('getUsedNomorSurat');
+    Route::get('/get-latest-nomor', [PengusulController::class, 'getLatestNomorUrut'])->name('getLatestNomor');
     // ======================= AKHIR REVISI =======================
     Route::post('/generate-surat', [PengusulController::class, 'templateSuratTugas'])->name('generate-surat');
     Route::get('/surat-tugas/{id}/download', [PengusulController::class, 'downloadPdf'])->name('download.pdf'); // Perbaiki nama route
@@ -147,4 +149,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/user/profile', function () {
         return view('user.profile');
     })->name('user.profile');
+    Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
+    Route::get('/surat-tugas/{id}/detail', [HistoryController::class, 'show'])->name('history.show');
+    Route::get('/surat-tugas/{id}/download-pdf', [PengusulController::class, 'downloadPdf'])->name('history.download_pdf');
 });

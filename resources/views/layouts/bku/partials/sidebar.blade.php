@@ -20,6 +20,12 @@
                 </span>
                 <span class="description">Laporan & Bukti Perjalanan Dinas</span>
             </a>
+            <a href="{{ route('history.index') }}" class="nav-link {{ Request::routeIs('history.index') ? 'active' : '' }}">
+                <span class="icon">
+                    <i class="bi bi-clock-history"></i>
+                </span>
+                <span class="description">History</span>
+            </a>
         </nav>
     </div>
 

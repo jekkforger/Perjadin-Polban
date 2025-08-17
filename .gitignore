@@ -1,0 +1,10 @@
+# Laravel standard
+/vendor/
+/node_modules/
+/.env
+/.phpunit.result.cache
+/storage
+/public/storage
+/public/hot
+npm-debug.log
+yarn-error.log

@@ -203,40 +203,39 @@
 <div class="modal fade" id="inputNomorModal" tabindex="-1" aria-labelledby="inputNomorModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title" id="inputNomorModalLabel">Input Nomor Surat Resmi</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+      <div class="modal-header">
+        <h5 class="modal-title" id="inputNomorModalLabel">Input Nomor Surat Resmi</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
       <div class="modal-body">
-
-       {{-- =================== AWAL PERUBAHAN INPUT =================== --}}
         <div class="mb-3">
           <label class="form-label">Format Nomor Surat Tugas Final:</label>
           <div class="d-flex align-items-center gap-2 flex-wrap">
-              <input type="number" id="inputNomorUrut" class="form-control" placeholder="Nomor Urut" required style="width: 100px;">
+              {{-- Input Nomor Urut dengan saran --}}
+              <input type="number" id="inputNomorUrut" class="form-control" placeholder="Nomor Urut" required style="width: 100px;" value="{{ $saranNomorUrut }}">
               /
+              {{-- Kode Unit Kerja (otomatis dari config/surat.php atau default) --}}
               <input type="text" id="inputKodeUnit" class="form-control" value="PL1" readonly style="width: 80px;">
               /
-              <input type="text" id="inputKodePerihal" class="form-control" value="KP" readonly style="width: 80px;">
+              {{-- Kode Perihal (otomatis dari surat tugas) --}}
+              <input type="text" id="inputKodePerihal" class="form-control" value="{{ $suratTugas->kode_perihal ?? 'RT.01.00' }}" readonly style="width: 100px;">
               /
+              {{-- Pilihan Tahun --}}
               <select id="inputTahun" class="form-select" required style="width: 100px;">
                   @foreach($tahunList as $tahun)
-                      <option value="{{ $tahun }}">{{ $tahun }}</option>
+                      <option value="{{ $tahun }}" {{ $tahun == now()->year ? 'selected' : '' }}>{{ $tahun }}</option>
                   @endforeach
               </select>
           </div>
-          @isset($saranNomorUrut)
+          {{-- Tampilkan saran nomor berdasarkan data dari Controller --}}
           <div class="form-text mt-2">
-              Nomor urut terakhir yang digunakan tahun ini: <strong>{{ $saranNomorUrut - 1 > 0 ? $saranNomorUrut - 1 : 'Belum ada' }}</strong>.
+              Nomor urut terakhir yang digunakan tahun ini: <strong>{{ $nomorTerakhir }}</strong>.
               Saran nomor berikutnya: <strong class="text-success">{{ $saranNomorUrut }}</strong>.
           </div>
-          @endisset
           @error('nomor_urutan_surat')
               <div class="text-danger small mt-2">{{ $message }}</div>
           @enderror
         </div>
-        {{-- =================== AKHIR PERUBAHAN INPUT =================== --}}
-
-        <label for="inputNomorSuratResmi" class="form-label">Masukkan Nomor Surat Tugas Final</label>
-        <input type="text" class="form-control" id="inputNomorSuratResmi" placeholder="Contoh: 625/PL12.C01/KP/2025">
-        <div class="form-text">Nomor ini akan menjadi nomor surat tugas resmi yang tercetak di dokumen final.</div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batalkan</button>
@@ -295,67 +294,60 @@
 document.addEventListener('DOMContentLoaded', function () {
     const inputModalEl = document.getElementById('inputNomorModal');
     const konfirmasiModalEl = document.getElementById('konfirmasiModal');
-    if (!inputModalEl || !konfirmasiModalEl) {
-        console.error('Modal elements not found!');
-        return;
-    }
+    if (!inputModalEl || !konfirmasiModalEl) return;
 
-        // =================== AWAL PERUBAHAN JAVASCRIPT ===================
-    // Referensi ke input baru di modal
+    const inputModal = new bootstrap.Modal(inputModalEl);
+    const konfirmasiModal = new bootstrap.Modal(konfirmasiModalEl);
+
+    // Referensi ke tombol-tombol
+    const btnBukaModalInput = document.getElementById('btnBukaModalInput');
+    const btnBukaModalKonfirmasi = document.getElementById('btnBukaModalKonfirmasi');
+    const btnSimpanPreview = document.getElementById('btnSimpanPreview');
+    const btnSubmitFinal = document.getElementById('btnSubmitFinal');
+    
+    // Referensi ke input di dalam modal
     const inputNomorUrut = document.getElementById('inputNomorUrut');
     const inputKodeUnit = document.getElementById('inputKodeUnit');
     const inputKodePerihal = document.getElementById('inputKodePerihal');
     const inputTahun = document.getElementById('inputTahun');
+
+    // Referensi ke elemen tampilan dan form
+    const previewSpan = document.getElementById('nomorSuratPreview');
+    const konfirmasiSpan = document.getElementById('nomorFinalKonfirmasi');
+    const finalForm = document.getElementById('assignNumberForm');
 
     // Referensi ke hidden inputs di form
     const hiddenNomorUrut = document.getElementById('hiddenNomorUrut');
     const hiddenKodeUnit = document.getElementById('hiddenKodeUnit');
     const hiddenKodePerihal = document.getElementById('hiddenKodePerihal');
     const hiddenTahun = document.getElementById('hiddenTahun');
-
-    const inputModal = new bootstrap.Modal(inputModalEl);
-    const konfirmasiModal = new bootstrap.Modal(konfirmasiModalEl);
-
-    const btnBukaModalInput = document.getElementById('btnBukaModalInput');
-    const btnBukaModalKonfirmasi = document.getElementById('btnBukaModalKonfirmasi');
-    const btnSimpanPreview = document.getElementById('btnSimpanPreview');
-    const btnSubmitFinal = document.getElementById('btnSubmitFinal');
-
-    const inputNomorField = document.getElementById('inputNomorSuratResmi');
-    const previewSpan = document.getElementById('nomorSuratPreview');
-    const konfirmasiSpan = document.getElementById('nomorFinalKonfirmasi');
-    
-    const hiddenInput = document.getElementById('hiddenNomorSurat');
-    const finalForm = document.getElementById('assignNumberForm');
     
     let nomorResmiValue = ''; // Variabel untuk menyimpan nomor sementara
-
-    // Inisialisasi jika surat sudah punya nomor (misal, dikembalikan Direktur)
-    const initialNomor = "{{ $suratTugas->nomor_surat_tugas_resmi ?? '' }}";
-    if (initialNomor) {
-        nomorResmiValue = initialNomor;
-        previewSpan.textContent = nomorResmiValue;
-        previewSpan.classList.remove('text-danger');
-        previewSpan.classList.add('text-dark', 'fw-normal');
-        btnBukaModalInput.style.display = 'none';
-        btnBukaModalKonfirmasi.style.display = 'inline-block';
-        inputNomorField.value = nomorResmiValue;
-    }
 
     // Alur saat tombol "Input Nomor Surat Resmi" diklik
     btnBukaModalInput.addEventListener('click', () => { inputModal.show(); });
 
     // Alur saat tombol "Terapkan ke Pratinjau" di modal diklik
     btnSimpanPreview.addEventListener('click', () => {
-        const nomorInput = inputNomorField.value.trim();
-        if (nomorInput === '') {
-            alert('Nomor surat tidak boleh kosong.');
+        // Bangun nomor surat lengkap dari input yang terpisah
+        const nomorUrut = inputNomorUrut.value.trim();
+        const kodeUnit = inputKodeUnit.value.trim();
+        const kodePerihal = inputKodePerihal.value.trim();
+        const tahun = inputTahun.value.trim();
+        
+        if (nomorUrut === '') {
+            alert('Nomor urut tidak boleh kosong.');
             return;
         }
-        nomorResmiValue = nomorInput;
+
+        nomorResmiValue = `${nomorUrut}/${kodeUnit}/${kodePerihal}/${tahun}`;
+        
+        // Perbarui tampilan
         previewSpan.textContent = nomorResmiValue;
         previewSpan.classList.remove('text-danger');
-        previewSpan.classList.add('text-dark', 'fw-normal');
+        previewSpan.classList.add('text-dark');
+
+        // Ganti tombol
         btnBukaModalInput.style.display = 'none';
         btnBukaModalKonfirmasi.style.display = 'inline-block';
         inputModal.hide();
@@ -369,7 +361,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Alur saat tombol "Ya, Simpan & Teruskan" di modal konfirmasi diklik
     btnSubmitFinal.addEventListener('click', function () {
-        hiddenInput.value = nomorResmiValue;
+        // Isi nilai ke input tersembunyi di form utama
+        hiddenNomorUrut.value = inputNomorUrut.value.trim();
+        hiddenKodeUnit.value = inputKodeUnit.value.trim();
+        hiddenKodePerihal.value = inputKodePerihal.value.trim();
+        hiddenTahun.value = inputTahun.value.trim();
+
+        // Nonaktifkan tombol dan submit form
         this.disabled = true;
         this.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Memproses...`;
         finalForm.submit();
