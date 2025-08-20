@@ -12,13 +12,31 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Models\TemplateSurat;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\PegawaiImport;
 
 class AdminController extends Controller
 {
-    public function pegawai() {
-        $pegawai = Pegawai::all(); // ambil semua data pegawai
-        return view('layouts.admin.pegawai', compact('pegawai'));
+    public function pegawai(Request $request)
+    {
+        // 1. Ambil parameter untuk sorting, defaultnya 'updated_at' desc (terbaru)
+        $sort = $request->input('sort', 'updated_at');
+        $direction = $request->input('direction', 'desc');
+        
+        // (Opsional tapi direkomendasikan) Daftar kolom yang boleh di-sort
+        $sortableColumns = ['nama', 'nip', 'jabatan', 'updated_at'];
+        if (!in_array($sort, $sortableColumns)) {
+            $sort = 'updated_at'; // Kembali ke default jika kolom tidak valid
+        }
+
+        // 2. Ambil semua data pegawai dan terapkan pengurutan
+        $pegawai = Pegawai::orderBy($sort, $direction)->get();
+
+        // 3. Kirim variabel sort dan direction ke view
+        return view('layouts.admin.pegawai', compact('pegawai', 'sort', 'direction'));
+
     }
+    
 
     public function mahasiswa() {
         $mahasiswa = Mahasiswa::all(); // ambil semua data mahasiswa
@@ -189,5 +207,26 @@ class AdminController extends Controller
         $pegawai->save();
 
         return response()->json(['success' => true]);
+    }
+
+    public function importPegawai(Request $request)
+    {
+        $request->validate([
+            'file_pegawai' => 'required|mimes:xlsx,csv'
+        ]);
+
+        try {
+            Excel::import(new PegawaiImport, $request->file('file_pegawai'));
+            
+            return redirect()->route('admin.pegawai')->with('success_message', 'Data pegawai berhasil diimpor!');
+
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+             $failures = $e->failures();
+             // Anda bisa menangani error validasi per baris di sini jika perlu
+             return redirect()->route('admin.pegawai')->with('error', 'Terjadi error validasi saat impor. Pastikan format file Anda benar.');
+        } catch (\Exception $e) {
+            // Tangani error umum lainnya
+            return redirect()->route('admin.pegawai')->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 }

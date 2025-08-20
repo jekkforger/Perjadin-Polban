@@ -8,3 +8,5 @@
 /public/hot
 npm-debug.log
 yarn-error.log
+*.csv
+*.txt
