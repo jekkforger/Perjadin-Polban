@@ -1,0 +1,44 @@
+* {
+    font-family: 'Poppins', sans-serif;
+}
+
+:root {
+    --sidebar-width: 120px;
+    --sidebar-collapsed-width: 0px;
+}
+
+.admin-container {
+    margin-left: var(--sidebar-width, 260px); /* default full sidebar */
+    transition: margin-left 0.3s ease;
+    min-height: 100vh;
+    padding: 2rem 2rem;
+}
+
+body.sidebar-collapsed .admin-container {
+    margin-left: var(--sidebar-collapsed-width) !important;
+}
+
+.admin-page-title {
+    font-weight: 600;
+    font-size: 40px;
+    margin-top: 50px;
+}
+
+.form-check-input:checked {
+    background-color: #28a745 !important; /* Hijau Bootstrap */
+    border-color: #28a745 !important;
+}
+
+table.no-vertical-borders th,
+table.no-vertical-borders td {
+    border-left: none !important;
+    border-right: none !important;
+}
+
+@media (max-width: 768px) {
+    .admin-container {
+        margin-left: 0 !important;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}

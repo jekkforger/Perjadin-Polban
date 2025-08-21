@@ -1,0 +1,260 @@
+/* public/css/paraf.css */
+
+* {
+    font-family: 'Poppins', sans-serif;
+}
+
+:root {
+    --sidebar-width: 120px;
+    --sidebar-collapsed-width: 0px;
+}
+
+.paraf-container {
+    margin-left: var(--sidebar-width, 260px); /* default full sidebar */
+    transition: margin-left 0.3s ease;
+    min-height: 100vh;
+    padding: 2rem 2rem;
+}
+
+body.sidebar-collapsed .paraf-container {
+    margin-left: var(--sidebar-collapsed-width) !important;
+}
+
+.paraf-page-title {
+    font-weight: 600;
+    font-size: 40px;
+    margin-top: 50px;
+}
+
+/* Styling umum untuk container halaman Paraf */
+.paraf-page-container {
+    width: 100%;
+    padding: 0 20px;
+}
+
+/* Styling untuk judul halaman "Paraf" */
+.paraf-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 2rem;
+    text-align: left;
+    padding-top: 5px;
+}
+
+/* === Styling untuk tampilan Default: Belum ada dokumen === */
+.paraf-no-document-card {
+    max-width: 500px; /* Batasi lebar card */
+    width: 100%;
+    margin: 50px auto; /* Pusatkan horizontal dan beri margin atas */
+    border-radius: 0.75rem;
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
+    border: none;
+    background-color: #fff;
+    padding: 2.5rem;
+}
+.paraf-no-document-card .card-body {
+    padding: 0 !important;
+}
+
+.paraf-no-document-icon {
+    width: 80px; /* Ukuran ikon gambar */
+    height: auto;
+    display: block;
+    margin: 0 auto 1rem auto;
+}
+
+.paraf-no-document-text {
+    font-size: 1.1rem;
+    color: #6c757d;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.paraf-upload-link {
+    font-size: 1rem;
+    color: #007bff;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.paraf-upload-link:hover {
+    color: #0056b3;
+}
+
+
+/* === Styling untuk tampilan Dokumen yang Sudah Diupload (Grid Card) === */
+.paraf-documents-grid {
+    margin-left: -10px; /* Offset gutter Bootstrap default */
+    margin-right: -10px;
+}
+
+.paraf-documents-grid .col-xl-3,
+.paraf-documents-grid .col-lg-4,
+.paraf-documents-grid .col-md-6,
+.paraf-documents-grid .col-sm-12 {
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-bottom: 20px; /* Jarak bawah antar card dokumen */
+}
+
+.document-card {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.15rem 0.75rem rgba(0, 0, 0, 0.08);
+    border: none;
+    background-color: #fff;
+    padding: 1.5rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.document-card-icon {
+    width: 60px; /* Ukuran ikon dokumen */
+    height: auto;
+    margin-bottom: 0.75rem;
+}
+
+.document-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    word-break: break-all; /* Jika nama file terlalu panjang */
+    margin-bottom: 0.25rem;
+}
+
+.document-card-info {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.document-status-badge {
+    padding: .3em .5em;
+    font-size: .7rem;
+    font-weight: 600;
+    border-radius: .25rem;
+    margin-top: 0.5rem;
+}
+.document-status-badge.bg-warning.text-dark { background-color: #f6c23e!important; color: #212529 !important; }
+.document-status-badge.bg-success { background-color: #1cc88a!important; }
+.document-status-badge.bg-danger { background-color: #e74a3b!important; }
+.document-status-badge.bg-secondary { background-color: #858796!important; color: white !important; }
+
+
+.document-actions .btn-sm {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+}
+.document-actions .btn-primary { background-color: #007bff; border-color: #007bff; }
+.document-actions .btn-success { background-color: #28a745; border-color: #28a745; }
+.document-actions .btn-danger { background-color: #e74a3b; border-color: #e74a3b; }
+
+
+/* === Styling untuk Modal Upload File (Google Drive-like) === */
+.paraf-drop-area {
+    border: 2px dashed #007bff; /* Border dashed biru */
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    background-color: #f8f9fa; /* Latar belakang abu-abu muda */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+}
+.paraf-drop-area.highlight {
+    background-color: #e2f0ff; /* Warna saat highlight drag */
+    border-color: #0056b3;
+}
+
+.paraf-drop-area .paraf-drop-icon {
+    font-size: 3rem; /* Ukuran ikon cloud-arrow-up */
+    color: #007bff;
+}
+.paraf-drop-area .paraf-browse-link {
+    font-weight: 600;
+}
+.paraf-drop-area .form-label {
+    cursor: pointer; /* Agar seluruh area label bisa diklik */
+}
+.paraf-drop-area .form-label p {
+    margin-bottom: 0; /* Hapus margin bawah p */
+}
+
+/* Styling untuk preview file yang dipilih */
+#file-preview-area .alert {
+    padding-right: 3rem; /* Ruang untuk tombol close */
+}
+#file-preview-area .btn-close {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Responsive adjustments */
+@media (max-width: 767.98px) {
+    .paraf-page-container {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    .paraf-title {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        padding-top: 0;
+    }
+    .paraf-no-document-card {
+        margin-top: 30px;
+        padding: 1.5rem;
+    }
+    .paraf-no-document-icon {
+        width: 60px;
+    }
+    .paraf-no-document-text {
+        font-size: 1rem;
+    }
+    .paraf-upload-link {
+        font-size: 0.9rem;
+    }
+    
+    .paraf-documents-grid .col-md-6,
+    .paraf-documents-grid .col-sm-12 {
+        padding-left: 5px;
+        padding-right: 5px;
+        margin-bottom: 10px;
+    }
+    .document-card {
+        padding: 1rem;
+    }
+    .document-card-icon {
+        width: 50px;
+    }
+    .document-card-title {
+        font-size: 0.9rem;
+    }
+    .document-card-info,
+    .document-status-badge {
+        font-size: 0.7rem;
+    }
+    .paraf-drop-area {
+        padding: 1rem;
+        min-height: 120px;
+    }
+    .paraf-drop-area .paraf-drop-icon {
+        font-size: 2.5rem;
+    }
+    .paraf-container {
+        margin-left: 0 !important;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}

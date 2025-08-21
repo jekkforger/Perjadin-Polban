@@ -1,0 +1,57 @@
+* {
+    font-family: 'Poppins', sans-serif;
+}
+
+:root {
+    --sidebar-width: 120px;
+    --sidebar-collapsed-width: 0px;
+}
+
+.pengusulan-container {
+    margin-left: var(--sidebar-width, 260px); /* default full sidebar */
+    transition: margin-left 0.3s ease;
+    min-height: 100vh;
+    padding: 2rem 2rem;
+}
+
+body.sidebar-collapsed .pengusulan-container {
+    margin-left: var(--sidebar-collapsed-width) !important;
+}
+
+.pengusulan-page-title {
+    font-weight: 600;
+    font-size: 40px;
+    margin-top: 50px;
+}
+
+.input-nomor-surat-group {
+  position: relative;
+  width: 100%;
+}
+.input-nomor-surat-real {
+  padding-right: 150px;
+  font-size: 1.2em;
+  letter-spacing: 1px;
+}
+.nomor-surat-suffix {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  color: black;
+  font-size: 1.1em;
+  pointer-events: none;
+  background: transparent;
+  font-family: inherit;
+}
+.input-nomor-surat::-webkit-input-placeholder { color: black; opacity: 1; }
+.input-nomor-surat:-ms-input-placeholder { color: black; opacity: 1; }
+.input-nomor-surat::placeholder { color: black; opacity: 1; }
+
+@media (max-width: 768px) {
+    .persetujuan-container {
+        margin-left: 0 !important;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
