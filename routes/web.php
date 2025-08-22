@@ -137,6 +137,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/template-surat', [AdminController::class, 'editTemplate'])->name('edit');
     Route::put('/template-surat', [AdminController::class, 'updateTemplate'])->name('update');
     Route::post('/pegawai/import', [AdminController::class, 'importPegawai'])->name('pegawai.import');
+    Route::post('/mahasiswa/import', [AdminController::class, 'importMahasiswa'])->name('mahasiswa.import');
 });
 
 // Anda bisa membuat Controller terpisah untuk User Profile/Settings

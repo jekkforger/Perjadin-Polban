@@ -43,6 +43,7 @@ class SuratTugas extends Model
         'direktur_signature_position',
         'tanggal_penomoran_sekdir', // TAMBAHKAN
         'sekdir_processor_id', // TAMBAHKAN
+        'lokasi_kegiatan',
     ];
 
     protected $casts = [
@@ -54,6 +55,7 @@ class SuratTugas extends Model
         'is_surat_perintah_langsung' => 'boolean',
         'wadir_signature_position' => 'array',
         'direktur_signature_position' => 'array',
+        'lokasi_kegiatan' => 'array',
     ];
 
     // Relasi ke User (Pengusul)

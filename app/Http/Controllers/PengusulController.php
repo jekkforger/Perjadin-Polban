@@ -251,26 +251,34 @@ class PengusulController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'nama_kegiatan'          => 'required|string|max:255',
-            'tempat_kegiatan'        => 'required|string',
-            'diusulkan_kepada'       => 'required|string',
-            'surat_undangan'         => 'nullable|file|mimes:pdf,doc,docx|max:2048',
-            'nama_penyelenggara'     => 'nullable|string|max:255', // Dibuat nullable
-            'tanggal_pelaksanaan'    => 'required|string',
-            'alamat_kegiatan'        => 'required|string',
-            'provinsi'               => 'required|string',
-            'pembiayaan'             => 'required|string|in:Polban,Penyelenggara,Polban dan Penyelenggara',
-            'pegawai_ids'            => 'nullable|array',
-            'pegawai_ids.*'          => 'exists:pegawai,id',
-            'mahasiswa_ids'          => 'nullable|array',
-            'mahasiswa_ids.*'        => 'exists:mahasiswa,id',
-            'status_pengajuan'       => 'required|string|in:draft,diajukan',
-            'nomor_urutan_surat'     => 'required|string|max:10',
-            'kode_pengusul'          => 'required|string|max:10',
-            'tahun_nomor_surat'      => 'required|string|digits:4',
-            'nomor_surat_usulan_jurusan' => ['required', $uniqueRule],
+            'nama_kegiatan'                 => 'required|string|max:255',
+            'diusulkan_kepada'              => 'required|string',
+            'surat_undangan'                => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'nama_penyelenggara'            => 'nullable|string|max:255',
+            'tanggal_pelaksanaan'           => 'required|string',
+            'provinsi'                      => 'required|string',
+            'pembiayaan'                    => 'required|string|in:Polban,Penyelenggara,Polban dan Penyelenggara',
+            'pegawai_ids'                   => 'nullable|array',
+            'pegawai_ids.*'                 => 'exists:pegawai,id',
+            'mahasiswa_ids'                 => 'nullable|array',
+            'mahasiswa_ids.*'               => 'exists:mahasiswa,id',
+            'status_pengajuan'              => 'required|string|in:draft,diajukan',
+            'nomor_urutan_surat'            => 'required|string|max:10',
+            'kode_pengusul'                 => 'required|string|max:10',
+            'tahun_nomor_surat'             => 'required|string|digits:4',
+            'nomor_surat_usulan_jurusan'    => ['required', $uniqueRule], // Asumsi $uniqueRule sudah didefinisikan di atasnya
+            
+            // Aturan baru untuk multi-lokasi
+            'lokasi'                        => 'required|array|min:1',
+            'lokasi.*.tempat'               => 'required|string|max:255',
+            'lokasi.*.alamat'               => 'required|string|max:255',
+
         ], [
-            'nomor_surat_usulan_jurusan.unique' => 'Nomor surat usulan ini sudah pernah digunakan. Mohon gunakan nomor urutan yang lain.'
+            'nomor_surat_usulan_jurusan.unique' => 'Nomor surat usulan ini sudah pernah digunakan.',
+            // Pesan error kustom untuk lokasi
+            'lokasi.required' => 'Minimal harus ada satu lokasi kegiatan.',
+            'lokasi.*.tempat.required' => 'Tempat kegiatan tidak boleh kosong.',
+            'lokasi.*.alamat.required' => 'Alamat kegiatan tidak boleh kosong.',
         ]);
 
         if ($validator->fails()) {
@@ -321,8 +329,7 @@ class PengusulController extends Controller
                 'nomor_surat_usulan_jurusan' => $nomorSuratGabungan,
                 'diusulkan_kepada'           => $request->diusulkan_kepada,
                 'perihal_tugas'              => $request->nama_kegiatan,
-                'tempat_kegiatan'            => $request->tempat_kegiatan,
-                'alamat_kegiatan'            => $request->alamat_kegiatan,
+                'lokasi_kegiatan'            => $request->lokasi, // <-- Ini yang benar
                 'kota_tujuan'                => $request->provinsi,
                 'tanggal_berangkat'          => $tanggal_berangkat,
                 'tanggal_kembali'            => $tanggal_kembali,
@@ -330,10 +337,10 @@ class PengusulController extends Controller
                 'sumber_dana'                => $request->pembiayaan,
                 'pagu_desentralisasi'        => $request->boolean('pagu_desentralisasi'),
                 'pagu_nominal'               => $request->input('pagu_nominal') ?? null,
-                'nama_penyelenggara'         => $request->input('nama_penyelenggara'), // <-- PERBAIKAN DI SINI
+                'nama_penyelenggara'         => $request->input('nama_penyelenggara'),
                 'status_surat'               => $request->input('status_pengajuan') === 'diajukan' ? 'pending_wadir_review' : 'draft',
                 'nomor_urutan_surat'         => $request->nomor_urutan_surat,
-                'kode_perihal'               => $kodePerihal,
+                'kode_perihal'               => $kodePerihal, // Asumsi $kodePerihal sudah ada
                 'tahun_nomor_surat'          => $request->tahun_nomor_surat,
             ];
 
@@ -434,10 +441,6 @@ class PengusulController extends Controller
     /**
      * Endpoint AJAX untuk mengambil nomor urut terakhir yang digunakan oleh pengusul.
      */
-    /**
-     * Endpoint AJAX untuk mengambil nomor urut terakhir yang digunakan oleh pengusul.
-     * VERSI PERBAIKAN FINAL
-     */
     public function getLatestNomorUrut(Request $request)
     {
         $request->validate(['tahun' => 'required|digits:4']);
@@ -449,16 +452,12 @@ class PengusulController extends Controller
         // Pola yang akan dicari di database, contoh: "%/KO/RT.01.00/2025"
         $pattern = '%/' . $kodePengusul . '/' . $kodePerihal . '/' . $tahun;
 
-        // Query untuk mencari nomor urut tertinggi dari string nomor surat
-        // Ini akan memfilter baris yang cocok dengan pola tahun dan kode,
-        // lalu mengambil angka sebelum '/' pertama dan mencari nilai maksimumnya.
+        // Query untuk mencari nomor urut tertinggi dari string `nomor_surat_usulan_jurusan`
         $latestNomor = SuratTugas::where('user_id', auth()->id())
             ->where('nomor_surat_usulan_jurusan', 'like', $pattern)
             ->select(DB::raw('MAX(CAST(SUBSTRING_INDEX(nomor_surat_usulan_jurusan, "/", 1) AS UNSIGNED)) as max_nomor'))
             ->value('max_nomor');
 
-        // Jika tidak ada surat sama sekali yang cocok, hasilnya akan null.
-        // Kita ubah null menjadi 0.
         return response()->json(['latest_nomor' => (int)$latestNomor ?? 0]);
     }
     

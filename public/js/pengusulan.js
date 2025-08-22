@@ -1,45 +1,26 @@
-// Initial setup for form steps
+// public/js/pengusulan.js (VERSI FINAL yang sudah diperbaiki)
 
-// TAMBAHKAN FUNGSI HELPER INI DI ATAS
-/**
- * Mengubah string tanggal "DD/MM/YYYY" menjadi format "Hari, Tanggal Bulan Tahun"
- * @param {string} dateStr - String tanggal dalam format DD/MM/YYYY.
- * @returns {string} Tanggal yang sudah diformat.
- */
+// --- FUNGSI HELPER GLOBAL ---
 function formatFullDate(dateStr) {
     if (!dateStr || dateStr.trim() === '') return '-';
-
     const parts = dateStr.trim().split('/');
-    if (parts.length !== 3) return dateStr; // Kembalikan string asli jika format salah
-
-    // new Date(year, monthIndex, day)
+    if (parts.length !== 3) return dateStr;
     const dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
-
-    // Opsi untuk format Bahasa Indonesia
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-
     return dateObj.toLocaleDateString('id-ID', options);
 }
-// AKHIR FUNGSI HELPER
 
+// --- VARIABEL GLOBAL DAN FUNGSI FORM STEP ---
 let currentStep = 1;
 const formSteps = document.querySelectorAll('.form-step');
 
 function showStep(stepNumber) {
-    // Sembunyikan semua langkah form
-    formSteps.forEach(step => {
-        step.classList.remove('form-step-active');
+    formSteps.forEach((step, index) => {
+        step.classList.toggle('form-step-active', index + 1 === stepNumber);
     });
-    // Tampilkan langkah yang aktif
-    formSteps[stepNumber - 1].classList.add('form-step-active');
-    
-    // ===================================================================
-    // <-- AWAL BLOK KONTROL TOMBOL BARU -->
-    // ===================================================================
-    // Sembunyikan semua tombol navigasi terlebih dahulu
-    $('#btn-kembali, #next-to-personel, #save-draft, #create-task, #submit-surat').hide();
 
-    // Tampilkan tombol yang sesuai berdasarkan langkah saat ini
+    $('#btn-kembali, #next-to-personel, #save-draft, #create-task, #submit-surat').hide();
+    
     if (stepNumber === 1) {
         $('#next-to-personel').show();
     } else if (stepNumber === 2) {
@@ -50,115 +31,107 @@ function showStep(stepNumber) {
         $('#btn-kembali').show();
         $('#submit-surat').show();
     }
-    // Ensure correct table is shown and DataTables redraws if needed
+
     if (stepNumber === 2) {
-        // Restore correct table visibility
-        const selectedDropdownText = $('#data-selection-dropdown').text();
-        if (selectedDropdownText.includes('Pegawai')) {
-            $('#data-pegawai-table').show();
-            $('#data-mahasiswa-table').hide();
-        } else if (selectedDropdownText.includes('Mahasiswa')) {
-            $('#data-mahasiswa-table').show();
-            $('#data-pegawai-table').hide();
-        } else {
-            $('#data-pegawai-table').show();
-            $('#data-mahasiswa-table').hide();
-            $('#data-selection-dropdown').text('Data Pegawai');
-        }
         if ($.fn.DataTable.isDataTable('#pegawaiTable')) $('#pegawaiTable').DataTable().columns.adjust().draw();
         if ($.fn.DataTable.isDataTable('#mahasiswaTable')) $('#mahasiswaTable').DataTable().columns.adjust().draw();
     }
 }
 
-let usedNomorSuratList = [];
-
-// Fungsi untuk mendapatkan daftar nomor surat terpakai dari backend
-function getUsedNomorSuratList() {
-    fetch('/pengusul/used-nomor-surat') // **Ini adalah URL AJAX untuk mengambil daftar nomor terpakai**
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Gagal memuat daftar nomor surat terpakai.');
-            }
-            return response.json();
-        })
-        .then(data => {
-            usedNomorSuratList = data.used_numbers; // Simpan data nomor terpakai
-            displayUsedNomorSurat(); // Tampilkan daftar di UI
-        })
-        .catch(error => {
-            console.error('Error memuat daftar nomor surat terpakai:', error);
-            $('#nomor-surat-list-ul').html('<li class="text-danger">Gagal memuat daftar.</li>');
-        });
-}
-
-// Fungsi untuk memeriksa ketersediaan nomor surat (AJAX)
-let typingTimerNomorSurat; // Timer untuk debounce input
-const doneTypingIntervalNomorSurat = 500; // Waktu tunda setelah mengetik
-
-function checkNomorSuratAvailability() {
-    clearTimeout(typingTimerNomorSurat);
-    typingTimerNomorSurat = setTimeout(function () {
-        const nomorUrutan = $('#nomor_urutan_surat').val();
-        const kodePengusul = $('#kode_pengusul_hidden').val();
-        const kodePerihal = $('#kode_perihal_hidden').val(); // Asumsi ada hidden input ini
-        const tahun = $('#tahun_nomor_surat').val();
-        const feedbackElement = $('#nomor-surat-feedback');
-
-        if (!nomorUrutan || !kodePengusul || !kodePerihal || !tahun) {
-            feedbackElement.html('').removeClass('text-success text-danger').data('status', '');
-            return;
-        }
-
-        feedbackElement.html('<span class="text-muted">Memeriksa...</span>').data('status', 'checking');
-
-        fetch(`/pengusul/check-nomor-surat?nomor_urutan_surat=${nomorUrutan}&kode_pengusul=${kodePengusul}&kode_perihal=${kodePerihal}&tahun_nomor_surat=${tahun}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Gagal memeriksa ketersediaan nomor surat.');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.is_used) {
-                    feedbackElement.html('<span class="text-danger">Nomor surat ini sudah terpakai.</span>').data('status', 'used');
-                } else {
-                    feedbackElement.html('<span class="text-success">Nomor surat ini tersedia.</span>').data('status', 'available');
-                }
-            })
-            .catch(error => {
-                console.error('Error memeriksa nomor surat:', error);
-                feedbackElement.html('<span class="text-danger">Gagal memeriksa ketersediaan.</span>').data('status', 'error');
-            });
-    }, doneTypingIntervalNomorSurat);
-}
-
-// Fungsi untuk menampilkan daftar nomor surat yang sudah dipakai di UI
-function displayUsedNomorSurat() {
-    const listUl = $('#nomor-surat-list-ul');
-    listUl.empty();
-    if (usedNomorSuratList.length > 0) {
-        usedNomorSuratList.forEach(nomor => {
-            listUl.append(`<li>${nomor}</li>`);
-        });
-    } else {
-        listUl.append('<li>Tidak ada nomor surat terpakai dalam 30 hari terakhir.</li>');
-    }
-}
-
-
-// Semua logika sekarang berada di dalam $(document).ready()
+// --- SEMUA LOGIKA DIMULAI SETELAH DOKUMEN SIAP ---
 $(document).ready(function () {
     showStep(1);
 
-    // ===================================================================
-    // BLOK VALIDASI NOMOR SURAT (VERSI FINAL)
-    // ===================================================================
+    const provinsiDropdownContainer = $('#provinsi-scroll-container');
+    const provinsiSearchInput = $('#search-provinsi-input');
+    const provinsiInputField = $('#provinsi');
+    const provinsiIdField = $('#provinsi_id');
+
+    function loadProvinces() {
+        provinsiDropdownContainer.html('<span class="dropdown-item-text px-2">Memuat data...</span>');
+        fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json`)
+            .then(response => {
+                if (!response.ok) throw new Error('Gagal memuat data');
+                return response.json();
+            })
+            .then(provinces => {
+                provinsiDropdownContainer.empty();
+                provinsiDropdownContainer.data('provinces', provinces);
+                provinces.forEach(provinsi => {
+                    const itemHtml = `<a class="dropdown-item" href="#" data-id="${provinsi.id}" data-name="${provinsi.name}">${provinsi.name}</a>`;
+                    provinsiDropdownContainer.append(itemHtml);
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                provinsiDropdownContainer.html('<span class="dropdown-item-text text-danger px-2">Gagal memuat provinsi. Coba lagi.</span>');
+            });
+    }
+
+    loadProvinces(); // Panggil fungsi untuk memuat data saat halaman siap
+
+    provinsiDropdownContainer.on('click', '.dropdown-item', function (e) {
+        e.preventDefault();
+        provinsiInputField.val($(this).data('name'));
+        provinsiIdField.val($(this).data('id'));
+        // Menutup dropdown secara manual, karena stopPropagation akan mencegahnya
+        // Anda mungkin perlu memastikan dropdown Bootstrap bisa ditutup seperti ini
+        // Jika tidak berhasil, bisa gunakan: $(this).closest('.dropdown').removeClass('show');
+        $(this).closest('.dropdown-menu').prev('.dropdown-toggle').dropdown('toggle');
+    });
+
+    provinsiSearchInput.on('keyup', function () {
+        const searchTerm = $(this).val().toLowerCase();
+        const allProvinces = provinsiDropdownContainer.data('provinces') || [];
+        const filtered = allProvinces.filter(p => p.name.toLowerCase().includes(searchTerm));
+        provinsiDropdownContainer.empty();
+        if (filtered.length > 0) {
+            filtered.forEach(p => {
+                provinsiDropdownContainer.append(`<a class="dropdown-item" href="#" data-id="${p.id}" data-name="${p.name}">${p.name}</a>`);
+            });
+        } else {
+            provinsiDropdownContainer.html('<span class="dropdown-item-text px-2">Tidak ditemukan.</span>');
+        }
+    });
+
+    provinsiSearchInput.on('click', function (e) {
+        e.stopPropagation(); // Mencegah dropdown tertutup saat mengklik input pencarian
+    });
+
+    // --- LOGIKA MULTI-LOKASI ---
+    let lokasiIndex = $('.lokasi-entry').length;
+    $('#btn-tambah-lokasi').on('click', function() {
+        const newLokasiHtml = `
+            <div class="input-group mb-2 lokasi-entry">
+                <span class="input-group-text">${lokasiIndex + 1}.</span>
+                <input type="text" name="lokasi[${lokasiIndex}][tempat]" class="form-control" placeholder="Tempat Kegiatan" required>
+                <input type="text" name="lokasi[${lokasiIndex}][alamat]" class="form-control" placeholder="Alamat" required>
+                <button type="button" class="btn btn-outline-danger btn-hapus-lokasi">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        $('#lokasi-wrapper').append(newLokasiHtml);
+        lokasiIndex++;
+    });
+
+    $('#lokasi-wrapper').on('click', '.btn-hapus-lokasi', function() {
+        $(this).closest('.lokasi-entry').remove();
+        lokasiIndex = 0; // Reset
+        $('#lokasi-wrapper .lokasi-entry').each(function(index) {
+            $(this).find('.input-group-text').text(`${index + 1}.`);
+            $(this).find('input[name*="[tempat]"]').attr('name', `lokasi[${index}][tempat]`);
+            $(this).find('input[name*="[alamat]"]').attr('name', `lokasi[${index}][alamat]`);
+            lokasiIndex = index + 1;
+        });
+    });
+
+    // --- BLOK VALIDASI NOMOR SURAT ---
     const nomorUrutInput = $('input[name="nomor_urutan_surat"]');
     const tahunSelect = $('select[name="tahun_nomor_surat"]');
     const feedbackDiv = $('#nomor-surat-feedback');
     const nextButton = $('#next-to-personel');
     const nomorTerpakaiList = $('#nomor-surat-list-ul');
-
     let latestNomorUrut = 0;
     const MAX_NOMOR_GAP = 5;
 
@@ -176,7 +149,7 @@ $(document).ready(function () {
             const data = await response.json();
             latestNomorUrut = data.latest_nomor;
             console.log(`Nomor terakhir untuk tahun ${tahun} adalah: ${latestNomorUrut}`);
-            await checkNomorAvailability(); // Validasi ulang setelah mendapat nomor terbaru
+            await checkNomorAvailability();
         } catch (error) {
             console.error('Error fetching latest number:', error);
             latestNomorUrut = 0;
@@ -188,39 +161,32 @@ $(document).ready(function () {
         const tahun = tahunSelect.val();
         const kodePengusul = $('input[name="kode_pengusul"]').val();
         const kodePerihal = $('input[name="kode_perihal"]').val();
-
         if (!nomorUrut) {
             feedbackDiv.html('');
             nextButton.prop('disabled', true).data('status', '');
             return;
         }
-
         const currentNomor = parseInt(nomorUrut, 10);
         if (isNaN(currentNomor)) {
             feedbackDiv.html('<span class="text-danger fw-bold"><i class="bi bi-x-circle-fill"></i> Nomor urut harus berupa angka.</span>').data('status', 'error');
             nextButton.prop('disabled', true);
             return;
         }
-
         if (currentNomor > latestNomorUrut + MAX_NOMOR_GAP) {
             const maxAllowed = latestNomorUrut + MAX_NOMOR_GAP;
             feedbackDiv.html(`<span class="text-danger fw-bold"><i class="bi bi-x-circle-fill"></i> Nomor urut terlalu jauh. Nomor terakhir adalah ${latestNomorUrut}, maksimal nomor berikutnya adalah ${maxAllowed}.</span>`).data('status', 'error');
             nextButton.prop('disabled', true);
             return;
         }
-        
         if (currentNomor <= latestNomorUrut) {
              feedbackDiv.html(`<span class="text-danger fw-bold"><i class="bi bi-x-circle-fill"></i> Nomor urut harus lebih besar dari nomor terakhir (${latestNomorUrut}).</span>`).data('status', 'error');
             nextButton.prop('disabled', true);
             return;
         }
-
         feedbackDiv.html('<span class="text-muted">Mengecek...</span>').data('status', 'checking');
-
         try {
             const response = await fetch(`/pengusul/check-nomor-surat?nomor_urutan_surat=${nomorUrut}&kode_pengusul=${kodePengusul}&kode_perihal=${kodePerihal}&tahun_nomor_surat=${tahun}`);
             const data = await response.json();
-
             if (data.is_used) {
                 feedbackDiv.html('<span class="text-danger fw-bold"><i class="bi bi-x-circle-fill"></i> Nomor surat sudah digunakan.</span>').data('status', 'used');
                 nextButton.prop('disabled', true);
@@ -252,127 +218,228 @@ $(document).ready(function () {
             nomorTerpakaiList.html('<li class="text-danger">Gagal memuat daftar.</li>');
         }
     };
-
+    
+    // --- Inisialisasi dan Event Listener untuk Nomor Surat ---
     const debouncedCheck = debounce(checkNomorAvailability, 500);
     nomorUrutInput.on('input', debouncedCheck);
-    
-    tahunSelect.on('change', function() {
-        fetchLatestNomorUrut($(this).val());
-    });
-
+    tahunSelect.on('change', () => fetchLatestNomorUrut(tahunSelect.val()));
     loadUsedNumbers();
     fetchLatestNomorUrut(tahunSelect.val());
-    
     if (!nomorUrutInput.val()) {
         nextButton.prop('disabled', true);
     }
-
-
+    
+    // --- Inisialisasi DataTable ---
     if (!$.fn.DataTable.isDataTable('#pegawaiTable')) {
-        $('#pegawaiTable').DataTable({
-            paging: true,
-            searching: true,
-            info: true,
-            pageLength: 5,
-            lengthMenu: [5, 10, 15],
-            order: [[1, 'asc']],
-            columnDefs: [{ orderable: false, targets: 0 }]
-        });
-    } else {
-        $('#pegawaiTable').DataTable().columns.adjust().draw();
+        $('#pegawaiTable').DataTable({ paging: true, searching: true, info: true, pageLength: 5, lengthMenu: [5, 10, 15], order: [[1, 'asc']], columnDefs: [{ orderable: false, targets: 0 }] });
     }
-
     if (!$.fn.DataTable.isDataTable('#mahasiswaTable')) {
-        $('#mahasiswaTable').DataTable({
-            paging: true,
-            searching: true,
-            info: true,
-            pageLength: 10,
-            lengthMenu: [5, 10, 15],
-            order: [[1, 'asc']],
-            columnDefs: [{ orderable: false, targets: 0 }]
-        });
-    } else {
-        $('#mahasiswaTable').DataTable().columns.adjust().draw();
+        $('#mahasiswaTable').DataTable({ paging: true, searching: true, info: true, pageLength: 10, lengthMenu: [5, 10, 15], order: [[1, 'asc']], columnDefs: [{ orderable: false, targets: 0 }] });
     }
 
-    $('#selectedPersonelContainer').hide();
-
-    // PROVINSI
-    const provinsiDropdownContainer = $('#provinsi-scroll-container');
-    const provinsiSearchInput = $('#search-provinsi-input');
-    const provinsiInputField = $('#provinsi');
-    const provinsiIdField = $('#provinsi_id');
-
-    // Load Data Provinsi dari API
-    function loadProvinces() {
-        provinsiDropdownContainer.html('<span class="dropdown-item-text px-2">Memuat data...</span>');
-
-        fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Gagal memuat data');
-                }
-                return response.json();
-            })
-            .then(provinces => {
-                provinsiDropdownContainer.empty();
-                provinsiDropdownContainer.data('provinces', provinces);
-
-                // Menambahkan setiap provinsi ke dropdown
-                provinces.forEach(provinsi => {
-                    const itemHtml = `<a class="dropdown-item" href="#" data-id="${provinsi.id}" data-name="${provinsi.name}">${provinsi.name}</a>`;
-                    provinsiDropdownContainer.append(itemHtml);
-                });
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                provinsiDropdownContainer.html('<span class="dropdown-item-text text-danger px-2">Gagal memuat provinsi.</span>');
-            });
+    // --- Sisa event listener lainnya ---
+    $('#create-task').on('click', function () {
+    if (selectedPersonel.length === 0) {
+        Swal.fire('Peringatan!', 'Pilih setidaknya satu personel!', 'warning');
+        return;
     }
 
-    // Trigger load saat dokumen siap
-    loadProvinces();
+    const form = $('#pengusulanForm');
+    const personelPreviewContainer = $('#personnel-preview-container');
+    const attachmentPreviewContainer = $('#attachment-preview-container');
+    const pElement = personelPreviewContainer.closest('.surat-tugas-content').find('p').first();
 
-    // Handle item dipilih
-    provinsiDropdownContainer.on('click', '.dropdown-item', function (e) {
-        e.preventDefault();
-        const selectedName = $(this).data('name');
-        const selectedId = $(this).data('id');
+    // Reset
+    personelPreviewContainer.empty();
+    attachmentPreviewContainer.empty().hide();
+    pElement.text('Direktur memberi tugas kepada:');
 
-        provinsiInputField.val(selectedName);
-        provinsiIdField.val(selectedId);
-        $('#btn-provinsi-dropdown').dropdown('toggle');
-    });
-
-    // Handle pencarian
-    provinsiSearchInput.on('keyup', function () {
-        const searchTerm = $(this).val().toLowerCase();
-        const allProvinces = provinsiDropdownContainer.data('provinces') || [];
-
-        const filtered = allProvinces.filter(p => p.name.toLowerCase().includes(searchTerm));
-        provinsiDropdownContainer.empty();
-
-        if (filtered.length > 0) {
-            filtered.forEach(p => {
-                provinsiDropdownContainer.append(`<a class="dropdown-item" href="#" data-id="${p.id}" data-name="${p.name}">${p.name}</a>`);
-            });
-        } else {
-            provinsiDropdownContainer.html('<span class="dropdown-item-text px-2">Tidak ditemukan.</span>');
+    // Mengisi data umum (tidak berubah)
+    const nomorSuratDisplay = `${form.find('input[name="nomor_urutan_surat"]').val()}/${form.find('input[name="kode_pengusul"]').val()}/${form.find('input[name="kode_perihal"]').val()}/${form.find('select[name="tahun_nomor_surat"]').val()}`;
+    const formattedDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    $('#nomor_surat_display').text(nomorSuratDisplay);
+    $('#nama_kegiatan_display_text').text(form.find('textarea[name="nama_kegiatan"]').val() || '-');
+    $('#nama_penyelenggara_display').text(form.find('input[name="nama_penyelenggara"]').val() || '-');
+    $('#tanggal_surat_formatted_display').text(formattedDate);
+    const tanggalValue = form.find('#tanggal_pelaksanaan').val() || '-';
+    let tanggalFormatted = '-';
+    if (tanggalValue.includes('→')) {
+        const dates = tanggalValue.split('→');
+        tanggalFormatted = `${formatFullDate(dates[0])} s.d. ${formatFullDate(dates[1])}`;
+    } else if (tanggalValue !== '-') {
+        tanggalFormatted = formatFullDate(tanggalValue);
+    }
+    $('#tanggal_pelaksanaan_display').text(tanggalFormatted);
+    const lokasiPreviewContainer = $('#lokasi_kegiatan_preview');
+    lokasiPreviewContainer.empty();
+    let lokasiHtml = '<ol style="margin: 0; padding-left: 1.2em;">';
+    $('.lokasi-entry').each(function() {
+        const tempat = $(this).find('input[name*="[tempat]"]').val();
+        const alamat = $(this).find('input[name*="[alamat]"]').val();
+        if (tempat || alamat) {
+            lokasiHtml += `<li style="margin-bottom: 5px;">${tempat ? `<strong>${tempat}</strong>` : ''}${tempat && alamat ? '<br>' : ''}${alamat ? alamat.replace(/\n/g, '<br>') : ''}</li>`;
         }
     });
+    lokasiHtml += '</ol>';
+    lokasiPreviewContainer.html($('.lokasi-entry').length > 0 ? lokasiHtml : '-');
 
-    // Cegah dropdown tertutup saat klik input
-    provinsiSearchInput.on('click', function (e) {
-        e.stopPropagation();
-    });
+    const personnelCount = selectedPersonel.length;
+    let personelHtml = '';
 
-    getUsedNomorSuratList();
+    if (personnelCount > 0 && personnelCount <= 1) {
+        // Tampilan vertikal untuk 1 orang (tetap sama)
+        selectedPersonel.forEach(personel => {
+            personelHtml += `<table class="table table-borderless table-sm mb-3" style="width: 100%;"><tbody>`;
+            personelHtml += `<tr><td style="width: 30%;">Nama</td><td style="width: 5%;">:</td><td>${personel.nama || '-'}</td></tr>`;
+            if (personel.type === 'pegawai') {
+                personelHtml += `<tr><td>NIP</td><td>:</td><td>${personel.nip || '-'}</td></tr>`;
+                personelHtml += `<tr><td>Pangkat/Golongan</td><td>:</td><td>${(personel.pangkat || '-') + ' / ' + (personel.golongan || '-')}</td></tr>`;
+                personelHtml += `<tr><td>Jabatan</td><td>:</td><td>${personel.jabatan || '-'}</td></tr>`;
+            } else { // Mahasiswa
+                personelHtml += `<tr><td>NIM</td><td>:</td><td>${personel.nim || '-'}</td></tr>`;
+                personelHtml += `<tr><td>Jurusan</td><td>:</td><td>${personel.jurusan || '-'}</td></tr>`;
+            }
+            personelHtml += `</tbody></table>`;
+        });
+        personelPreviewContainer.html(personelHtml);
 
-    // Pantau perubahan pada input nomor urutan dan tahun
-    $('#nomor_urutan_surat').on('keyup', checkNomorSuratAvailability);
-    $('#tahun_nomor_surat').on('change', checkNomorSuratAvailability);
+    } else if (personnelCount > 1 && personnelCount <= 5) {
+        // TAMPILAN TABEL UNTUK 2-5 ORANG (BISA CAMPURAN)
+        const pegawai = selectedPersonel.filter(p => p.type === 'pegawai');
+        const mahasiswa = selectedPersonel.filter(p => p.type === 'mahasiswa');
+
+        // Buat tabel untuk Pegawai jika ada
+        if (pegawai.length > 0) {
+            personelHtml += `<h6>Pegawai yang Ditugaskan:</h6>`;
+            personelHtml += `<table class="table table-bordered table-sm" style="font-size: 11pt;"><thead class="text-center"><tr><th>Nama</th><th>NIP</th><th>Pangkat</th><th>Golongan</th><th>Jabatan</th></tr></thead><tbody>`;
+            pegawai.forEach(p => {
+                personelHtml += `<tr><td>${p.nama || '-'}</td><td>${p.nip || '-'}</td><td>${p.pangkat || '-'}</td><td>${p.golongan || '-'}</td><td>${p.jabatan || '-'}</td></tr>`;
+            });
+            personelHtml += `</tbody></table>`;
+        }
+
+        // Buat tabel untuk Mahasiswa jika ada
+        if (mahasiswa.length > 0) {
+            personelHtml += `<h6 style="margin-top: 15px;">Mahasiswa yang Ditugaskan:</h6>`;
+            personelHtml += `<table class="table table-bordered table-sm" style="font-size: 11pt;"><thead class="text-center"><tr><th>Nama</th><th>NIM</th><th>Jurusan</th><th>Prodi</th></tr></thead><tbody>`;
+            mahasiswa.forEach(p => {
+                personelHtml += `<tr><td>${p.nama || '-'}</td><td>${p.nim || '-'}</td><td>${p.jurusan || '-'}</td><td>${p.prodi || '-'}</td></tr>`;
+            });
+            personelHtml += `</tbody></table>`;
+        }
+        personelPreviewContainer.html(personelHtml);
+
+    } else if (personnelCount > 5) {
+        pElement.html('Direktur Politeknik Negeri Bandung menugaskan kepada yang namanya tercantum di dalam lampiran pada surat tugas ini');
+        
+        const ITEMS_PER_PAGE = 9;
+        
+        // --- BACA DATA SEKALI DAN SIMPAN KE VARIABEL (DI LUAR FUNGSI) ---
+        const kementerian = $('#attachment-preview-container').data('kementerian') || 'KEMENTERIAN PENDIDIKAN TINGGI, SAINS, DAN TEKNOLOGI';
+        const direktur = $('#attachment-preview-container').data('direktur') || 'Marwansyah, S.E., M.Si., Ph.D.';
+        const nip = $('#attachment-preview-container').data('nip') || '1964050419900310021';
+        
+        // --- FUNGSI UNTUK MEMBUAT TEMPLATE HALAMAN LAMPIRAN ---
+        const createAttachmentPageHtml = (isLastPage) => {
+            const signatureHtml = isLastPage ? `
+                <table class="table table-borderless table-sm mt-5" style="width: 100%;">
+                    <tr valign="top">
+                        <td style="width: 50%;"></td>
+                        <td style="width: 50%; text-align: left; vertical-align: bottom;">
+                            <p class="mb-1">Bandung, ${formattedDate}</p>
+                            <p class="mb-1">Direktur,</p><div style="height: 60px;"></div>
+                            <p class="mb-0">${direktur}</p><p class="mb-0">NIP ${nip}</p>
+                        </td>
+                    </tr>
+                </table>` : '';
+
+            // Perhatikan: Tidak ada kop surat di sini, hanya judul lampiran
+            return `
+                <div class="document-container surat-tugas-body" style="min-height: auto; margin-bottom: 2rem; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+                    <div class="surat-tugas-content">
+                        <p style="text-align: left; margin-top: 0;">Lampiran: ${nomorSuratDisplay}</p>
+                        <div class="personnel-attachment-list"></div>
+                        ${signatureHtml}
+                    </div>
+                </div>`;
+        };
+
+        // --- GABUNGKAN SEMUA PERSONEL, LALU BAGI MENJADI HALAMAN-HALAMAN ---
+        const allPersonnelChunks = [];
+        let currentChunk = [];
+        const pegawai = selectedPersonel.filter(p => p.type === 'pegawai');
+        const mahasiswa = selectedPersonel.filter(p => p.type === 'mahasiswa');
+
+        // Gabungkan semua ke dalam satu array untuk dipecah
+        const allData = [...pegawai, ...mahasiswa];
+
+        for (let i = 0; i < allData.length; i += ITEMS_PER_PAGE) {
+            allPersonnelChunks.push(allData.slice(i, i + ITEMS_PER_PAGE));
+        }
+
+        // --- RENDER SETIAP HALAMAN ---
+        allPersonnelChunks.forEach((chunk, pageIndex) => {
+            const isLastPage = pageIndex === allPersonnelChunks.length - 1;
+            const pageHtml = $(createAttachmentPageHtml(isLastPage));
+            const contentArea = pageHtml.find('.personnel-attachment-list');
+            
+            const pegawaiInChunk = chunk.filter(p => p.type === 'pegawai');
+            const mahasiswaInChunk = chunk.filter(p => p.type === 'mahasiswa');
+            
+            let tableHtml = '';
+
+            if (pegawaiInChunk.length > 0) {
+                tableHtml += `<h6>1. Pegawai</h6><table class="table table-bordered table-sm"><thead><tr><th>Nama</th><th>NIP</th><th>Pangkat</th><th>Golongan</th><th>Jabatan</th></tr></thead><tbody>`;
+                pegawaiInChunk.forEach(p => {
+                    tableHtml += `<tr><td>${p.nama}</td><td>${p.nip}</td><td>${p.pangkat}</td><td>${p.golongan}</td><td>${p.jabatan}</td></tr>`;
+                });
+                tableHtml += `</tbody></table>`;
+            }
+
+            if (mahasiswaInChunk.length > 0) {
+                tableHtml += `<h6 style="margin-top:20px;">2. Mahasiswa</h6><table class="table table-bordered table-sm"><thead><tr><th>Nama</th><th>NIM</th><th>Jurusan</th><th>Prodi</th></tr></thead><tbody>`;
+                mahasiswaInChunk.forEach(p => {
+                    tableHtml += `<tr><td>${p.nama}</td><td>${p.nim}</td><td>${p.jurusan}</td><td>${p.prodi}</td></tr>`;
+                });
+                tableHtml += `</tbody></table>`;
+            }
+            
+            contentArea.html(tableHtml);
+            attachmentPreviewContainer.append(pageHtml);
+        });
+
+        attachmentPreviewContainer.show();
+        // ===================================================================
+        // <-- AKHIR LOGIKA BARU -->
+        // ===================================================================
+    }
+    
+    
+    // Pindah ke langkah preview
+    currentStep = 3;
+    showStep(currentStep);
 });
+    $('#btn-kembali').on('click', () => {
+        // Jika kita sedang berada di langkah 3 (preview) dan akan kembali,
+        // maka kita perlu mereset tampilan lampiran.
+        if (currentStep === 3) {
+            const attachmentPreviewContainer = $('#attachment-preview-container');
+            const personelPreviewContainer = $('#personnel-preview-container');
+            const pElement = personelPreviewContainer.closest('.surat-tugas-content').find('p').first();
+
+            // 1. Sembunyikan container lampiran
+            attachmentPreviewContainer.hide();
+
+            // 2. Kembalikan teks paragraf di surat utama ke teks aslinya
+            pElement.text('Direktur memberi tugas kepada:');
+        }
+        currentStep--;
+        showStep(currentStep);
+    });
+    
+});
+
+// ... (sisa kode Anda dari `let selectedPersonel` sampai akhir) ...
 
 let selectedPersonel = [];
 
@@ -742,6 +809,35 @@ $('#tanggal_surat_formatted_display').text(formattedDate);
             }
         } // <- kurung kurawal penutup ini mungkin milik fungsi di atasnya, pastikan tidak ikut terhapus
     });
+
+    const lokasiPreviewContainer = $('#lokasi_kegiatan_preview');
+    lokasiPreviewContainer.empty(); // Kosongkan dulu
+    
+    let lokasiHtml = '<ol style="margin: 0; padding-left: 1.2em;">';
+    let lokasiAda = false;
+
+    // Ambil semua input lokasi yang ada di form
+    $('.lokasi-entry').each(function() {
+        const tempat = $(this).find('input[name*="[tempat]"]').val();
+        const alamat = $(this).find('input[name*="[alamat]"]').val();
+        
+        if (tempat || alamat) {
+            lokasiAda = true;
+            lokasiHtml += `<li style="margin-bottom: 5px;">
+                                ${tempat ? `<strong>${tempat}</strong>` : ''}
+                                ${tempat && alamat ? '<br>' : ''}
+                                ${alamat ? alamat.replace(/\n/g, '<br>') : ''}
+                           </li>`;
+        }
+    });
+
+    lokasiHtml += '</ol>';
+
+    if (lokasiAda) {
+        lokasiPreviewContainer.html(lokasiHtml);
+    } else {
+        lokasiPreviewContainer.text('-'); // Tampilkan strip jika tidak ada lokasi
+    }
 });
 
 $('#back-to-form').on('click', () => { currentStep = 2; showStep(currentStep); });

@@ -10,10 +10,10 @@
         </div>
 
         <!-- Tempat Kegiatan -->
-        <div class="mb-3">
+        {{-- <div class="mb-3">
           <label for="tempat_kegiatan" class="form-label">Tempat Kegiatan *</label>
           <textarea class="form-control" id="tempat_kegiatan" name="tempat_kegiatan" placeholder="Tempat Kegiatan Kegiatan" rows="3" required>{{ old('tempat_kegiatan') }}</textarea>
-        </div>
+        </div> --}}
 
         <!-- Diusulkan Kepada -->
         <div class="form-section mb-4">
@@ -84,12 +84,28 @@
         </div>
 
           <!-- Alamat Kegiatan -->
-          <div class="mb-3">
+          {{-- <div class="mb-3">
               <label for="alamat_kegiatan" class="form-label">Alamat Kegiatan *</label>
               <div class="input-group">
                   <textarea class="form-control" id="alamat_kegiatan" name="alamat_kegiatan" placeholder="Alamat Kegiatan" rows="3" required>{{ old('alamat_kegiatan') }}</textarea>
               </div>
+          </div> --}}
+
+        <div class="mb-3">
+          <label class="form-label">Tempat & Alamat Kegiatan *</label>
+          <div id="lokasi-wrapper">
+              {{-- Lokasi pertama (wajib ada) --}}
+              <div class="input-group mb-2 lokasi-entry">
+                  <span class="input-group-text">1.</span>
+                  <input type="text" name="lokasi[0][tempat]" class="form-control" placeholder="Tempat Kegiatan" required>
+                  <input type="text" name="lokasi[0][alamat]" class="form-control" placeholder="Alamat" required>
+                  {{-- Tombol hapus tidak ada untuk yang pertama --}}
+              </div>
           </div>
+          <button type="button" id="btn-tambah-lokasi" class="btn btn-sm btn-outline-success mt-2">
+              <i class="fas fa-plus"></i> Tambah Lokasi
+          </button>
+      </div>
 
         <!-- Provinsi -->
         <div class="form-section mb-4">

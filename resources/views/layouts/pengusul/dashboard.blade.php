@@ -103,7 +103,7 @@
                     </td>
                     <td>
                         {{-- Aksi View / Edit --}}
-                        <a href="{{ route('pengusul.surat-tugas.show', $st->surat_tugas_id) }}" class="btn btn-sm btn-outline-info">
+                        <a href="{{ route('history.show', $st->surat_tugas_id) }}" class="btn btn-sm btn-info" title="Lihat Detail">
                             <i class="fas fa-eye"></i> View
                         </a>
 

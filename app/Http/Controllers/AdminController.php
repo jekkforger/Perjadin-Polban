@@ -14,6 +14,7 @@ use App\Models\TemplateSurat;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\PegawaiImport;
+use App\Imports\MahasiswaImport;
 
 class AdminController extends Controller
 {
@@ -38,9 +39,24 @@ class AdminController extends Controller
     }
     
 
-    public function mahasiswa() {
-        $mahasiswa = Mahasiswa::all(); // ambil semua data mahasiswa
-        return view('layouts.admin.mahasiswa', compact('mahasiswa'));
+    public function mahasiswa(Request $request)
+    {
+        // 1. Ambil parameter untuk sorting, defaultnya 'updated_at' desc (terbaru)
+        $sort = $request->input('sort', 'updated_at');
+        $direction = $request->input('direction', 'desc');
+        
+        // Daftar kolom yang boleh di-sort
+        $sortableColumns = ['nama', 'nim', 'jurusan', 'prodi', 'updated_at'];
+        if (!in_array($sort, $sortableColumns)) {
+            $sort = 'updated_at'; // Kembali ke default jika kolom tidak valid
+        }
+
+        // 2. Ambil semua data mahasiswa dan terapkan pengurutan
+        $mahasiswa = Mahasiswa::orderBy($sort, $direction)->get();
+
+        // 3. Kirim variabel sort dan direction ke view
+        return view('layouts.admin.mahasiswa', compact('mahasiswa', 'sort', 'direction'));
+
     }
 
     public function akun() {
@@ -227,6 +243,22 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             // Tangani error umum lainnya
             return redirect()->route('admin.pegawai')->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    public function importMahasiswa(Request $request)
+    {
+        $request->validate([
+            'file_mahasiswa' => 'required|mimes:xlsx,csv'
+        ]);
+
+        try {
+            Excel::import(new MahasiswaImport, $request->file('file_mahasiswa'));
+            
+            return redirect()->route('admin.mahasiswa')->with('success_message', 'Data mahasiswa berhasil diimpor!');
+
+        } catch (\Exception $e) {
+            return redirect()->route('admin.mahasiswa')->with('error', 'Terjadi kesalahan saat impor: ' . $e->getMessage());
         }
     }
 }

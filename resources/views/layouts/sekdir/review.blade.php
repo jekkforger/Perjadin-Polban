@@ -5,180 +5,180 @@
 
 @section('sekdir_content')
 <div class="sekdir-container px-4 py-3">
-    <h1 class="sekdir-page-title mb-4">Nomor Surat</h1>
+    <h1 class="sekdir-page-title mb-4">Penomoran Surat Tugas</h1>
 
-    <div class="p-4 shadow-sm bg-white rounded">
-        {{-- =================================================================== --}}
-        {{--   BAGIAN 1: PRATINJAU DOKUMEN SURAT TUGAS (STRUKTUR DIPERBAIKI)   --}}
-        {{-- =================================================================== --}}
-        
-        <div class="document-container surat-tugas-body">
-            
-            <!-- =========== HEADER HALAMAN =========== -->
-            <div class="surat-tugas-header">
-                <img src="{{ asset('img/polban.png') }}" alt="POLBAN Logo" />
-                <div class="surat-tugas-header-text">
-                    <h1>{{ $suratSettings->nama_kementerian ?? ''}}</h1>
-                    <h2>POLITEKNIK NEGERI BANDUNG</h2>
-                    <p>Jalan Gegerkalong Hilir, Desa Ciwaruga, Bandung 40012, Kotak Pos 1234,</p>
-                    <p>Telepon: (022) 2013789, Faksimile: (022) 2013889</p>
-                    <p>Laman: <a href="https://www.polban.ac.id" target="_blank">www.polban.ac.id</a>, Pos Elektronik: polban@polban.ac.id</p>
+    <div class="card shadow mb-4">
+        <div class="card-body p-5">
+            {{-- =================================================================== --}}
+            {{-- PRATINJAU SURAT UTAMA --}}
+            {{-- =================================================================== --}}
+            <div class="paper-preview-wrapper">
+                    <div class="document-container surat-tugas-body" style="min-height: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+                <div class="surat-tugas-header">
+                    <img src="{{ asset('img/polban.png') }}" alt="POLBAN Logo" />
+                    <div class="surat-tugas-header-text">
+                        <h1>{{ $suratSettings->nama_kementerian ?? 'KEMENTERIAN PENDIDIKAN TINGGI, SAINS, DAN TEKNOLOGI' }}</h1>
+                        <h2>POLITEKNIK NEGERI BANDUNG</h2>
+                        <p>Jalan Gegerkalong Hilir, Desa Ciwaruga, Bandung 40012, Kotak Pos 1234,</p>
+                        <p>Telepon: (022) 2013789, Faksimile: (022) 2013889</p>
+                        <p>Laman: <a href="https://www.polban.ac.id" target="_blank">www.polban.ac.id</a>, Pos Elektronik: polban@polban.ac.id</p>
+                    </div>
                 </div>
-            </div>
-            <hr class="surat-tugas-header-line" />
+                <hr class="surat-tugas-header-line" />
 
-            <!-- =========== ISI UTAMA HALAMAN =========== -->
-            <div class="surat-tugas-content">
+                <div class="surat-tugas-content">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h4 class="surattugas" style="text-decoration: underline; margin-bottom: 4px;">SURAT TUGAS</h4>
+                        <h4 class="nomor" style="margin-top: 0;">
+                            Nomor: <span id="nomorSuratPreview" class="fw-bold text-danger">{{ $suratTugas->nomor_surat_tugas_resmi ?? '[Nomor Resmi Belum Diinput]' }}</span>
+                        </h4>
+                    </div>
+                    
+                    @include('layouts.pengusul.partials._personnel_display', ['suratTugas' => $suratTugas])
 
-                {{-- Judul dan Nomor Surat --}}
-                <div style="width: fit-content; margin-left: auto; margin-right: auto; transform: translateX(30px); text-align: left;">
-  <h4 class="surattugas" style="text-decoration: margin-bottom: 4px;">SURAT TUGAS</h4>
-  <h4 class="nomor" style="margin-top: 0;">
-    Nomor: <span id="nomorSuratPreview" class="fw-bold text-danger">{{ $suratTugas->nomor_surat_tugas_resmi ?? '[Nomor Resmi Belum Diinput]' }}</span>
-</h4>
-</div>
-                <p style="margin-bottom: 10px; text-align: justify;">
-                    Direktur memberi tugas kepada:
-                </p>
-
-                {{-- Daftar Personel yang Ditugaskan (menggunakan format Tabel) --}}
-                <div id="daftar_personel_surat_tugas" style="margin-bottom: 15px;">
-                    @forelse ($suratTugas->detailPelaksanaTugas as $detail)
-                        @php
-                            $personel = $detail->personable;
-                            $isPegawai = $detail->personable_type === \App\Models\Pegawai::class;
-                        @endphp
-                        <table class="table table-borderless table-sm mb-3" style="width: 100%; font-size: 11pt; line-height: 1.6;">
+                    {{-- @if ($suratTugas->detailPelaksanaTugas->count() <= 5) --}}
+                        <p style="margin-top: 20px; margin-bottom: 10px;">
+                            Untuk mengikuti kegiatan <strong>{{ $suratTugas->perihal_tugas }}</strong>, diselenggarakan oleh <strong>{{ $suratTugas->nama_penyelenggara }}</strong> pada:
+                        </p>
+                        <table class="table table-borderless table-sm">
                             <tbody>
                                 <tr>
-                                    <td style="width: 30%; padding: 2px 0;">Nama</td>
-                                    <td style="width: 5%; padding: 2px 0;">:</td>
-                                    <td style="padding: 2px 0;">{{ $personel->nama ?? '-' }}</td>
+                                    <td style="width: 30%; vertical-align: top;">Hari / Tanggal</td><td style="width: 5%; vertical-align: top;">:</td>
+                                    <td>
+                                        @if ($suratTugas->tanggal_berangkat->isSameDay($suratTugas->tanggal_kembali))
+                                            {{ $suratTugas->tanggal_berangkat->translatedFormat('l, j F Y') }}
+                                        @else
+                                            {{ $suratTugas->tanggal_berangkat->translatedFormat('l, j F Y') }} s.d. {{ $suratTugas->tanggal_kembali->translatedFormat('l, j F Y') }}
+                                        @endif
+                                    </td>
                                 </tr>
-                                @if ($isPegawai)
-                                    <tr>
-                                        <td style="padding: 2px 0;">NIP</td>
-                                        <td style="padding: 2px 0;">:</td>
-                                        <td style="padding: 2px 0;">{{ $personel->nip ?? '-' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 2px 0;">Pangkat / Golongan</td>
-                                        <td style="padding: 2px 0;">:</td>
-                                        <td style="padding: 2px 0;">{{ ($personel->pangkat ?? '-') . ' / ' . ($personel->golongan ?? '-') }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 2px 0;">Jabatan</td>
-                                        <td style="padding: 2px 0;">:</td>
-                                        <td style="padding: 2px 0;">{{ $personel->jabatan ?? '-' }}</td>
-                                    </tr>
-                                @else
-                                    <tr>
-                                        <td style="padding: 2px 0;">NIM</td>
-                                        <td style="padding: 2px 0;">:</td>
-                                        <td style="padding: 2px 0;">{{ $personel->nim ?? '-' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 2px 0;">Jurusan</td>
-                                        <td style="padding: 2px 0;">:</td>
-                                        <td style="padding: 2px 0;">{{ $personel->jurusan ?? '-' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 2px 0;">Program Studi</td>
-                                        <td style="padding: 2px 0;">:</td>
-                                        <td style="padding: 2px 0;">{{ $personel->prodi ?? '-' }}</td>
-                                    </tr>
-                                @endif
+                                <tr>
+                                    <td style="vertical-align: top;">Tempat Kegiatan</td><td style="vertical-align: top;">:</td>
+                                    <td>
+                                        <ol style="margin: 0; padding-left: 1.2em;">
+                                            @foreach ($suratTugas->lokasi_kegiatan as $lokasi)
+                                                <li style="margin-bottom: 5px;">
+                                                    <strong>{{ $lokasi['tempat'] }}</strong><br>
+                                                    {!! nl2br(e($lokasi['alamat'])) !!}
+                                                </li>
+                                            @endforeach
+                                        </ol>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
-                    @empty
-                        <p class="text-muted fst-italic">(Tidak ada personel yang ditugaskan)</p>
-                    @endforelse
-                </div>
+                    {{-- @endif --}}
+                    
+                    <p style="margin-top: 20px;">Demikian surat tugas ini dibuat untuk dilaksanakan dengan penuh tanggung jawab.</p>
 
-                <p style="margin-top: 20px; margin-bottom: 10px; text-align: justify;">
-                    Untuk mengikuti kegiatan <span class="fw-bold">{{ $suratTugas->perihal_tugas }}</span>, diselenggarakan oleh <span class="fw-bold">{{ $suratTugas->nama_penyelenggara ?? $suratTugas->sumber_dana }}</span> pada:
-                </p>
-                
-                <!-- Detail Kegiatan (menggunakan format Tabel) -->
-                <table class="table table-borderless table-sm" style="width: 100%; font-size: 11pt; line-height: 1.6;">
-                    <tbody>
-                        <tr>
-                            <td style="width: 30%; padding: 2px 0; vertical-align: top;">Hari / Tanggal</td>
-                            <td style="width: 5%; padding: 2px 0; vertical-align: top;">:</td>
-                            <td style="padding: 2px 0; vertical-align: top;">
-                                @if ($suratTugas->tanggal_berangkat->isSameDay($suratTugas->tanggal_kembali))
-                                    {{ $suratTugas->tanggal_berangkat->translatedFormat('l, j F Y') }}
-                                @else
-                                    {{ $suratTugas->tanggal_berangkat->translatedFormat('l, j F Y') }} → {{ $suratTugas->tanggal_kembali->translatedFormat('l, j F Y') }}
+                    <table class="table table-borderless table-sm mt-5">
+                        <tr valign="top">
+                            <td style="width: 50%; vertical-align: bottom;">
+                                <div>
+                                    <p class="fw-bold mb-1">Tembusan:</p>
+                                    <ol class="mb-0" style="padding-left: 20px;">
+                                        @forelse ($suratSettings->tembusan_default ?? [] as $tembusan)
+                                            <li>{{ $tembusan }}</li>
+                                        @empty
+                                            <li>-</li>
+                                        @endforelse
+                                    </ol>
+                                </div>
+                            </td>
+                            <td style="width: 50%; text-align: left; vertical-align: bottom; position: relative;">
+                                @if($suratTugas->wadir_signature_data)
+                                    @php $wadirPosition = $suratTugas->wadir_signature_position ?? ['x' => -80, 'y' => -15, 'width' => 70, 'height' => 50]; @endphp
+                                    <div style="position: absolute; left: {{ $wadirPosition['x'] }}px; top: {{ $wadirPosition['y'] }}px; width: {{ $wadirPosition['width'] }}px; height: {{ $wadirPosition['height'] }}px; z-index: 9;">
+                                        <img src="{{ $suratTugas->wadir_signature_data }}" alt="Paraf Wadir" style="width: 100%; height: 100%; object-fit: contain;">
+                                    </div>
+                                @elseif($suratTugas->wadirApprover && $suratTugas->wadirApprover->para_file_path)
+                                    <div style="position: absolute; left: -80px; top: -15px; width: 70px; height: 50px; z-index: 9;">
+                                        <img src="{{ Storage::url($suratTugas->wadirApprover->para_file_path) }}" alt="Paraf Wadir" style="width: 100%; height: 100%; object-fit: contain;">
+                                    </div>
                                 @endif
+                                <p class="mb-1">Bandung, {{ $suratTugas->tanggal_paraf_wadir ? $suratTugas->tanggal_paraf_wadir->translatedFormat('j F Y') : now()->translatedFormat('j F Y') }}</p>
+                                <p class="mb-1">Direktur,</p>
+                                <div style="height: 60px;"></div>
+                                <p class="fw-bold mb-0" style="margin-top: -5px;">{{ $suratSettings->nama_direktur ?? '' }}</p>
+                                <p class="mb-0">NIP {{ $suratSettings->nip_direktur ?? '' }}</p>
                             </td>
                         </tr>
-        <tr>
-          <td>Tempat</td>
-          <td>:</td>
-          <td>
-          {{ $suratTugas->tempat_kegiatan }}<br>
-          {!! nl2br(e($suratTugas->alamat_kegiatan)) !!}
-          </td>
-        </tr>
-        </tbody>
-      </table>
-
-                <p style="margin-top: 20px; text-align: justify;">
-                    Surat tugas ini dibuat untuk dilaksanakan dengan penuh tanggung jawab.
-                </p>
-
-                <!-- =========== FOOTER GRID (menggunakan tabel) =========== -->
-                <table class="table table-borderless table-sm mt-5" style="width: 100%;">
-                    <tr style="vertical-align: top;">
-                        <!-- Kolom Tembusan -->
-                        <td style="width: 50%; vertical-align: bottom; font-size: 10pt;">
-                            <div>
-                                <p class="fw mb-1">Tembusan:</p>
-                                <ol style="padding-left: 20px; margin: 0;">
-                                    @forelse ($suratSettings->tembusan_default ?? [] as $tembusan)
-                                        <li style="margin-bottom: 2px;">{{ $tembusan }}</li>
-                                    @empty
-                                        <li>-</li>
-                                    @endforelse
-                                </ol>
-                            </div>
-                        </td>
-
-                        <!-- Kolom Tanda Tangan Direktur -->
-                        <td style="width: 50%; text-align: left; vertical-align: bottom; position: relative; font-size: 11pt;">
-                            {{-- Tampilkan paraf Wadir sebagai bukti alur kerja --}}
-                            @if($suratTugas->wadir_signature_data)
-                                @php
-                                    $wadirPosition = $suratTugas->wadir_signature_position ?? ['x' => -80, 'y' => -15, 'width' => 70, 'height' => 50];
-                                @endphp
-                                {{-- PERBAIKAN: Hapus kelas CSS, gunakan inline style saja --}}
-                                <div style="position: absolute; left: {{ $wadirPosition['x'] }}px; top: {{ $wadirPosition['y'] }}px; width: {{ $wadirPosition['width'] }}px; height: {{ $wadirPosition['height'] }}px; z-index: 9;">
-                                    <img src="{{ $suratTugas->wadir_signature_data }}" alt="Paraf Wadir" style="width: 100%; height: 100%; object-fit: contain;">
-                                </div>
-                            @elseif($suratTugas->wadirApprover && $suratTugas->wadirApprover->para_file_path)
-                                {{-- PERBAIKAN: Hapus kelas CSS, gunakan inline style saja --}}
-                                <div style="position: absolute; left: -80px; top: -15px; width: 70px; height: 50px; z-index: 9;">
-                                    <img src="{{ Storage::url($suratTugas->wadirApprover->para_file_path) }}" alt="Paraf Wadir" style="width: 100%; height: 100%; object-fit: contain;">
-                                </div>
-                            @endif
-                            
-                            <p style="margin-bottom: 2px;">Bandung, {{ $suratTugas->tanggal_paraf_wadir ? $suratTugas->tanggal_paraf_wadir->translatedFormat('j F Y') : now()->translatedFormat('j F Y') }}</p>
-                            <p style="margin-bottom: 2px;">Direktur,</p>
-                            
-                            <div style="height: 60px;"></div> {{-- Ruang kosong untuk TTD Direktur nanti --}}
-                            
-                            <p style="font-weight: bold; margin: 0;">{{ $suratSettings->nama_direktur ?? '' }}</p>
-                            <p style="margin: 0;">NIP {{ $suratSettings->nip_direktur ?? '' }}</p>
-                        </td>
-                    </tr>
-                </table>
-              </div>
+                    </table>
+                </div>
+            </div>
+            </div>
         </div>
 
         {{-- =================================================================== --}}
-        {{--   BAGIAN 2: PANEL AKSI INTERAKTIF UNTUK SEKDIR                      --}}
+        {{-- LOGIKA UNTUK MENAMPILKAN LAMPIRAN --}}
         {{-- =================================================================== --}}
+        @if ($suratTugas->detailPelaksanaTugas->count() > 5)
+            @php
+                $personnels = $suratTugas->detailPelaksanaTugas;
+                $pegawai = $personnels->where('personable_type', \App\Models\Pegawai::class);
+                $mahasiswa = $personnels->where('personable_type', \App\Models\Mahasiswa::class);
+                $itemsPerPage = 9;
+                $allPersonnel = $pegawai->merge($mahasiswa);
+                $allPersonnelChunks = $allPersonnel->chunk($itemsPerPage);
+            @endphp
+            
+            @foreach ($allPersonnelChunks as $pageIndex => $chunk)
+                <div class="card-body p-5" style="margin-top: 2rem;">
+                    <div class="document-container surat-tugas-body" style="min-height: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+                        <div class="surat-tugas-content">
+                            {{-- <h4 style="text-align: left; margin-bottom: 5px; font-weight: normal;">Lampiran Surat Tugas</h4> --}}
+                            <p style="text-align: left; margin-top: 0;">Lampiran: <span class="fw-bold text-danger">[Nomor Resmi Belum Diinput]</span></p>
+                            
+                            @php
+                                $pegawaiInChunk = $chunk->where('personable_type', \App\Models\Pegawai::class);
+                                $mahasiswaInChunk = $chunk->where('personable_type', \App\Models\Mahasiswa::class);
+                            @endphp
+
+                            @if ($pegawaiInChunk->isNotEmpty())
+                                <p>1. Pegawai</p>
+                                <table class="table table-bordered table-sm">
+                                    <thead><tr class="text-center"><th>Nama</th><th>NIP</th><th>Pangkat</th><th>Golongan</th><th>Jabatan</th></tr></thead>
+                                    <tbody>
+                                        @foreach ($pegawaiInChunk as $detail)
+                                            <tr><td>{{ $detail->personable->nama }}</td><td>{{ $detail->personable->nip }}</td><td>{{ $detail->personable->pangkat }}</td><td>{{ $detail->personable->golongan }}</td><td>{{ $detail->personable->jabatan }}</td></tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            @endif
+
+                            @if ($mahasiswaInChunk->isNotEmpty())
+                                <p>2. Mahasiswa</p>
+                                <table class="table table-bordered table-sm">
+                                    <thead><tr class="text-center"><th>Nama</th><th>NIM</th><th>Jurusan</th><th>Prodi</th></tr></thead>
+                                    <tbody>
+                                        @foreach ($mahasiswaInChunk as $detail)
+                                            <tr><td>{{ $detail->personable->nama }}</td><td>{{ $detail->personable->nim }}</td><td>{{ $detail->personable->jurusan }}</td><td>{{ $detail->personable->prodi }}</td></tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            @endif
+
+                            @if ($loop->last)
+                                <table class="table table-borderless table-sm mt-5">
+                                    <tr valign="top">
+                                        <td style="width: 50%;"></td>
+                                        <td style="width: 50%; text-align: left; vertical-align: bottom;">
+                                            <p class="mb-1">Bandung, {{ $suratTugas->tanggal_paraf_wadir ? $suratTugas->tanggal_paraf_wadir->translatedFormat('j F Y') : now()->translatedFormat('j F Y') }}</p>
+                                            <p class="mb-1">Direktur,</p>
+                                            <div style="height: 60px;"></div>
+                                            <p class="fw-bold mb-0" style="margin-top: -5px;">{{ $suratSettings->nama_direktur ?? '' }}</p>
+                                            <p class="mb-0">NIP {{ $suratSettings->nip_direktur ?? '' }}</p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        @endif
+
+        {{-- Panel Aksi Sekdir --}}
         <div class="card-footer bg-light p-3 text-center">
             <button type="button" class="btn btn-primary btn-lg" id="btnBukaModalInput">
                 <i class="bi bi-pencil-square"></i> Input Nomor Surat Resmi
@@ -276,8 +276,154 @@
 @endsection
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/ttd_digital.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/sekdir_content.css') }}">
+    {{-- {{-- <link rel="stylesheet" href="{{ asset('css/ttd_digital.css') }}"> --}}
+    <link rel="stylesheet" href="{{ asset('css/sekdir_content.css') }}"> 
+    <link rel="stylesheet" href="{{ asset('css/pengusul_content.css') }}">
+    {{-- <link rel="stylesheet" href="{{ asset('css/template-surat.css') }}"> --}}
+    
+    {{-- CSS khusus untuk memperbaiki tampilan history/show --}}
+    {{-- <style>
+        /* Wrapper untuk pratinjau kertas - menyesuaikan dengan pengusul/preview-surat */
+        .paper-preview-wrapper {
+            width: 100%;
+            max-width: 900px; /* Batasi lebar maksimal */
+            margin: 0 auto 2rem auto; /* Center dan beri margin bottom */
+            background: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        /* Override document-container untuk ukuran yang lebih proporsional */
+        .paper-preview-wrapper .document-container {
+            width: 100%;
+            max-width: none;
+            min-height: auto;
+            padding: 40px 60px; /* Padding yang lebih proporsional */
+            margin: 0;
+            box-shadow: none;
+            border-radius: 0;
+            background: white;
+            font-family: 'Times New Roman', serif;
+            font-size: 12pt; /* Ukuran font yang lebih besar */
+            line-height: 1.6;
+        }
+        
+        /* Perbaiki header surat */
+        .paper-preview-wrapper .surat-tugas-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .paper-preview-wrapper .surat-tugas-header img {
+            width: 80px;
+            height: auto;
+            flex-shrink: 0;
+        }
+        
+        .paper-preview-wrapper .surat-tugas-header-text {
+            flex: 1;
+            text-align: center;
+            font-size: 11pt;
+        }
+        
+        .paper-preview-wrapper .surat-tugas-header-text h1 {
+            font-size: 14pt;
+            font-weight: bold;
+            margin: 0 0 3px 0;
+            line-height: 1.2;
+        }
+        
+        .paper-preview-wrapper .surat-tugas-header-text h2 {
+            font-size: 13pt;
+            font-weight: bold;
+            margin: 0 0 8px 0;
+            line-height: 1.2;
+        }
+        
+        .paper-preview-wrapper .surat-tugas-header-text p {
+            font-size: 10pt;
+            margin: 1px 0;
+            line-height: 1.3;
+        }
+        
+        .paper-preview-wrapper .surat-tugas-header-line {
+            border: 0;
+            border-top: 2px solid #000;
+            margin: 15px 0 25px 0;
+        }
+        
+        /* Perbaiki konten surat */
+        .paper-preview-wrapper .surat-tugas-content {
+            font-size: 12pt;
+            line-height: 1.6;
+        }
+        
+        .paper-preview-wrapper .surat-tugas-content h4 {
+            font-size: 13pt;
+            font-weight: bold;
+            margin: 0;
+            line-height: 1.3;
+        }
+        
+        .paper-preview-wrapper .surat-tugas-content p {
+            margin-bottom: 12px;
+            text-align: justify;
+        }
+        
+        /* Perbaiki tabel */
+        .paper-preview-wrapper .table {
+            font-size: 12pt;
+            line-height: 1.5;
+        }
+        
+        .paper-preview-wrapper .table td {
+            padding: 4px 8px;
+            border: none;
+            vertical-align: top;
+        }
+        
+        .paper-preview-wrapper .table-bordered td,
+        .paper-preview-wrapper .table-bordered th {
+            border: 1px solid #000;
+            padding: 6px 8px;
+            font-size: 11pt;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .paper-preview-wrapper .document-container {
+                padding: 20px 30px;
+                font-size: 11pt;
+            }
+            
+            .paper-preview-wrapper .surat-tugas-header {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .paper-preview-wrapper .surat-tugas-header img {
+                width: 70px;
+            }
+        }
+        
+        @media print {
+            .paper-preview-wrapper {
+                box-shadow: none;
+                margin: 0;
+                max-width: none;
+            }
+            
+            .paper-preview-wrapper .document-container {
+                padding: 2cm 3cm;
+                font-size: 12pt;
+            }
+        }
+    </style> --}}
 @endpush
 
 @push('scripts')

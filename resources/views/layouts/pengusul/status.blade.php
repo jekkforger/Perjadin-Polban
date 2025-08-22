@@ -72,7 +72,7 @@
                                 @endif
                             </td>
                             <td>
-                                <a href="{{ route('pengusul.surat-tugas.show', $st->surat_tugas_id) }}" class="btn btn-sm btn-outline-info">
+                                <a href="{{ route('history.show', $st->surat_tugas_id) }}" class="btn btn-sm btn-info" title="Lihat Detail">
                                     <i class="fas fa-eye"></i> View
                                 </a>
                                 @if ($st->status_surat == 'draft' || Str::contains($st->status_surat, 'reverted'))

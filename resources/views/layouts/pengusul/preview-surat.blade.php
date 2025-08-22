@@ -29,8 +29,11 @@
       </p>
 
       {{-- Ini adalah tempat daftar personel terpilih akan di-inject oleh JavaScript --}}
-      <div class="personel-list" id="daftar_personel_surat_tugas" style="margin-bottom: 15px;">
+      {{-- <div class="personel-list" id="daftar_personel_surat_tugas" style="margin-bottom: 15px;"> --}}
         {{-- Konten diisi oleh JavaScript --}}
+      {{-- </div> --}}
+      <div id="personnel-preview-container" style="margin-bottom: 15px;">
+        {{-- Konten akan diisi oleh JavaScript saat tombol "Lanjut ke Preview" diklik --}}
       </div>
 
       <p style="margin-top: 20px; margin-bottom: 10px;">
@@ -47,13 +50,15 @@
             <td id="tanggal_pelaksanaan_display"></td>
           </tr>
           <tr>
-            <td style="vertical-align: top;">Tempat</td>
+            <td style="vertical-align: top;">Tempat Kegiatan</td>
             <td style="vertical-align: top;">:</td>
-            {{-- ID diubah menjadi satu untuk menampung gabungan data --}}
-            <td id="tempat_dan_alamat_display"></td>
+            <td>
+              {{-- Wadah kosong ini akan diisi oleh JavaScript --}}
+              <div id="lokasi_kegiatan_preview"></div>
+            </td>
           </tr>
         </tbody>
-      </table>
+</table>
 
       <p style="margin-top: 20px;">
         Surat tugas ini dibuat untuk dilaksanakan dengan penuh tanggung jawab.
@@ -93,6 +98,42 @@
 
     </div>
     <!-- =========== AKHIR ISI UTAMA =========== -->
+</div>
+<div id="attachment-preview-container" style="display: none; margin-top: 2rem;">
+    <div class="document-container surat-tugas-body">
+        {{-- Kop surat untuk lampiran --}}
+        {{-- <div class="surat-tugas-header">
+            <img src="{{ asset('img/polban.png') }}" alt="POLBAN Logo" />
+            <div class="surat-tugas-header-text">
+                <h1>{{ $suratSettings->nama_kementerian ?? '...' }}</h1>
+                <h2>POLITEKNIK NEGERI BANDUNG</h2>
+            </div>
+        </div>
+        <hr class="surat-tugas-header-line" /> --}}
+
+        {{-- Isi Lampiran --}}
+        <div class="surat-tugas-content">
+            <h4 style="text-align: left; margin-bottom: 5px;">Lampiran Surat Tugas</h4>
+            <p style="text-align: left; margin-top: 0;">Nomor: <span id="nomor_surat_display_lampiran"></span></p>
+
+            {{-- Wadah ini akan diisi oleh JavaScript dengan tabel-tabel personel --}}
+            <div id="personnel-attachment-list"></div>
+
+            {{-- Tanda Tangan Direktur di Lampiran --}}
+            <table class="table table-borderless table-sm mt-5" style="width: 100%;">
+                <tr valign="top">
+                    <td style="width: 50%;"></td>
+                    <td style="width: 50%; text-align: center; vertical-align: bottom;">
+                        <p class="mb-1">Bandung, <span id="tanggal_surat_formatted_display_lampiran"></span></p>
+                        <p class="mb-1">Direktur,</p>
+                        <div style="height: 60px;"></div>
+                        <p class="fw mb-0" style="margin-top: -5px;">{{ $suratSettings->nama_direktur ?? '' }}</p>
+                        <p class="mb-0">NIP {{ $suratSettings->nip_direktur ?? '' }}</p>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
 </div>
 
 <!-- Pindahkan Tombol Kembali dan Usulkan di luar surat-tugas-body -->
